@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>XTscores | Jogos de hoje</title>
+  <link rel="icon" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="loading">
+    <div class="circulo"></div>
+    <p>Carregando</p>
+  </div>
+
+  <header>
+    <img class="logo" src="logo.png" alt="XTscores">
+    <div class="barra">
+      <div class="filtros">
+        <select id="league" class="escondido">
+          <option value="">Todas as ligas</option>
+          <option value="BSA">Brasileirão</option>
+          <option value="PL">Premier League</option>
+          <option value="PD">La Liga</option>
+          <option value="SA">Serie A</option>
+          <option value="BL1">Bundesliga</option>
+          <option value="FL1">Ligue 1</option>
+          <option value="CL">Champions League</option>
+          <option value="DED">Eredivisie</option>
+          <option value="PPL">Primeira Liga</option>
+          <option value="ELC">Championship</option>
+        </select>
+        <div class="picker" id="picker">
+          <button type="button" class="picker-btn" id="picker-btn">
+            <span>Todas as ligas</span>
+          </button>
+          <div class="picker-lista escondido" id="picker-lista"></div>
+        </div>
+        <select id="round"></select>
+      </div>
+      <div class="lado-direito">
+        <div id="liga-destaque" class="liga-destaque escondido"></div>
+        <button id="aovivo" type="button"><span class="bolinha"></span>AO VIVO</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2 id="titulo-jogos">Jogos de hoje</h2>
+      <div id="matches" class="list"></div>
+    </section>
+    <section>
+      <h2 id="titulo-tabela" class="escondido">Classificação</h2>
+      <div id="table"></div>
+    </section>
+  </main>
+
+  <dialog id="modal">
+    <article id="detail"></article>
+    <button id="close">Fechar</button>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
