@@ -10,6 +10,8 @@ const loading = document.querySelector("#loading");
 const botaoAoVivo = document.querySelector("#aovivo");
 const ligaDestaque = document.querySelector("#liga-destaque");
 const WHATSAPP = "5541999999999";
+const CACHE_MAX_IDADE = 5 * 60 * 1000;
+
 let cargas = 0;
 let soAoVivo = false;
 let jogosAtuais = [];
@@ -19,6 +21,10 @@ let modoHoje = true;
 
 function chaveAtual() {
   return leagueSelect.value ? `${leagueSelect.value}-${roundSelect.value || "atual"}` : "hoje";
+}
+function cacheValido(item) {
+  if (!item) return false;
+  return Date.now() - item.salvoEm < CACHE_MAX_IDADE;
 }
 function mostrarLoading() {
   cargas++;
@@ -33,7 +39,7 @@ function espera(ms) {
 }
 function tempoDoLimite(msg) {
   const n = Number(String(msg).match(/Wait (\d+)/)?.[1]);
-  return ((n || 20) + 2) * 1000;
+  return ((n || 20) + 3) * 1000;
 }
 async function buscar(url) {
   while (true) {
@@ -76,29 +82,24 @@ function hoje() {
   const dia = String(d.getDate()).padStart(2, "0");
   return `${d.getFullYear()}-${mes}-${dia}`;
 }
-
 function diaLocal(iso) {
   return new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
 }
-
 function quando(iso) {
   const d = new Date(iso);
   const data = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" });
   const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
   return `${data}<br>${hora}`;
 }
-
 function escudo(time, lado) {
   const img = `<img class="escudo" src="${time.crest || ""}" alt="">`;
   const nome = `<span class="time">${nomeTime(time)}</span>`;
   return lado === "casa" ? `${nome}${img}` : `${img}${nome}`;
 }
-
 function placar(m) {
   if (m.score?.fullTime?.home == null) return "x";
   return `${m.score.fullTime.home} x ${m.score.fullTime.away}`;
 }
-
 function statusClasse(status) {
   if (status === "IN_PLAY" || status === "PAUSED") return "aovivo";
   if (status === "FINISHED") return "encerrado";
@@ -106,7 +107,6 @@ function statusClasse(status) {
   if (status === "CANCELLED" || status === "POSTPONED") return "cancelado";
   return "";
 }
-
 function marcarPernas(jogos) {
   const vistos = new Set();
   return [...jogos]
@@ -119,7 +119,6 @@ function marcarPernas(jogos) {
       return { ...m, perna };
     });
 }
-
 function card(m) {
   const vivo = aoVivo(m);
   const encerrado = m.status === "FINISHED";
@@ -130,21 +129,24 @@ function card(m) {
   const casa = nomeTime(m.homeTeam);
   const fora = nomeTime(m.awayTeam);
   const texto = encodeURIComponent(`Palpite: ${casa} x ${fora}`);
-  const palpite = (encerrado || cancelado) ? "" : `<a class="palpite" href="https://wa.me/${WHATSAPP}?text=${texto}" target="_blank" rel="noopener">Palpite $</a>`;
+  const palpite = (encerrado || cancelado) ? "" : `
+    <a class="palpite" href="https://wa.me/${WHATSAPP}?text=${texto}" target="_blank" rel="noopener">Palpite $</a>
+  `;
   return `
     <div class="jogo">
-      ${palpite}
       <button class="match" data-id="${m.id}">
         <span class="quando">${quando(m.utcDate)}</span>
         <span class="casa">${escudo(m.homeTeam, "casa")}</span>
         <span class="placar">${placar(m)}</span>
         <span class="fora">${escudo(m.awayTeam, "fora")}</span>
-        <span class="estado ${statusClasse(m.status)}">${bolinha}${statusLabel[m.status] || m.status}${minuto}${perna}</span>
+        <span class="estado-area">
+          ${palpite}
+          <span class="estado ${statusClasse(m.status)}">${bolinha}${statusLabel[m.status] || m.status}${minuto}${perna}</span>
+        </span>
       </button>
     </div>
   `;
 }
-
 function desenharJogos() {
   const lista = soAoVivo ? jogosAtuais.filter(aoVivo) : jogosAtuais;
   if (!lista.length) {
@@ -179,12 +181,77 @@ function desenharJogos() {
   matchesEl.innerHTML = lista.map(card).join("");
 }
 
-function zona(pos) {
-  if (pos <= 4) return "libertadores";
-  if (pos <= 6) return "pre-libertadores";
-  if (pos <= 12) return "sulamericana";
-  if (pos >= 17) return "rebaixamento";
+function zona(code, pos) {
+  const regras = {
+    BSA: { c: [1,4], e: [5,6], conf: [7,12], r: [17,20] },
+    PL:  { c: [1,4], e: [5,5], conf: [6,6], r: [18,20] },
+    PD:  { c: [1,4], e: [5,5], conf: [6,6], r: [18,20] },
+    SA:  { c: [1,4], e: [5,5], conf: [6,6], r: [18,20] },
+    BL1: { c: [1,4], e: [5,5], conf: [6,6], r: [17,18] },
+    FL1: { c: [1,3], e: [4,4], conf: [5,5], r: [16,18] },
+    DED: { c: [1,2], e: [3,3], conf: [4,4], r: [16,18] },
+    PPL: { c: [1,2], e: [3,3], conf: [4,4], r: [16,18] },
+    ELC: { promo: [1,2], playoff: [3,6], r: [22,24] }
+  };
+  const r = regras[code];
+  if (!r) return "";
+  if (r.c && pos >= r.c[0] && pos <= r.c[1]) return "champions";
+  if (r.e && pos >= r.e[0] && pos <= r.e[1]) return "europa";
+  if (r.conf && pos >= r.conf[0] && pos <= r.conf[1]) return "conference";
+  if (r.promo && pos >= r.promo[0] && pos <= r.promo[1]) return "promo";
+  if (r.playoff && pos >= r.playoff[0] && pos <= r.playoff[1]) return "playoff";
+  if (r.r && pos >= r.r[0] && pos <= r.r[1]) return "rebaixamento";
   return "";
+}
+
+function legenda(code) {
+  const legendas = {
+    BSA: `
+      <span><i class="champions"></i>Libertadores</span>
+      <span><i class="europa"></i>Pré-Libertadores</span>
+      <span><i class="conference"></i>Sul-Americana</span>
+      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
+    PL: `
+      <span><i class="champions"></i>Champions</span>
+      <span><i class="europa"></i>Europa League</span>
+      <span><i class="conference"></i>Conference</span>
+      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
+    PD: `
+      <span><i class="champions"></i>Champions</span>
+      <span><i class="europa"></i>Europa League</span>
+      <span><i class="conference"></i>Conference</span>
+      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
+    SA: `
+      <span><i class="champions"></i>Champions</span>
+      <span><i class="europa"></i>Europa League</span>
+      <span><i class="conference"></i>Conference</span>
+      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
+    BL1: `
+      <span><i class="champions"></i>Champions</span>
+      <span><i class="europa"></i>Europa League</span>
+      <span><i class="conference"></i>Conference</span>
+      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
+    FL1: `
+      <span><i class="champions"></i>Champions</span>
+      <span><i class="europa"></i>Europa League</span>
+      <span><i class="conference"></i>Conference</span>
+      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
+    DED: `
+      <span><i class="champions"></i>Champions</span>
+      <span><i class="europa"></i>Europa League</span>
+      <span><i class="conference"></i>Conference</span>
+      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
+    PPL: `
+      <span><i class="champions"></i>Champions</span>
+      <span><i class="europa"></i>Europa League</span>
+      <span><i class="conference"></i>Conference</span>
+      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
+    ELC: `
+      <span><i class="promo"></i>Promoção</span>
+      <span><i class="playoff"></i>Playoff</span>
+      <span><i class="rebaixamento"></i>Rebaixamento</span>`
+  };
+  return legendas[code] || "";
 }
 
 function preencherRodadas(atual, selecionada, total) {
@@ -207,12 +274,13 @@ async function carregarHoje() {
   tituloJogos.textContent = "Jogos de hoje";
   document.title = "XTscores | Jogos de hoje";
   const chave = "hoje";
-  if (cacheJogos[chave]) {
-    jogosAtuais = cacheJogos[chave];
+  const cached = cacheJogos[chave];
+  if (cacheValido(cached)) {
+    jogosAtuais = cached.dados;
     desenharJogos();
+    return;
   }
-  const primeira = !cacheJogos[chave];
-  if (primeira) mostrarLoading();
+  mostrarLoading();
   try {
     const inicio = hoje();
     const fim = new Date();
@@ -220,15 +288,16 @@ async function carregarHoje() {
     const dateTo = fim.toISOString().slice(0, 10);
     const data = await buscar(`/api/jogos?date=${inicio}&dateTo=${dateTo}`);
     if (data.error) {
-      if (primeira) matchesEl.textContent = data.error;
+      matchesEl.innerHTML = `<p class="vazio">${data.error}</p>`;
       return;
     }
     const hojeBr = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
-    jogosAtuais = marcarPernas((data.matches || []).filter(m => diaLocal(m.utcDate) === hojeBr));
-    cacheJogos[chave] = jogosAtuais;
-    if (chaveAtual() === chave) desenharJogos();
+    const novos = marcarPernas((data.matches || []).filter(m => diaLocal(m.utcDate) === hojeBr));
+    cacheJogos[chave] = { dados: novos, salvoEm: Date.now() };
+    jogosAtuais = novos;
+    desenharJogos();
   } finally {
-    if (primeira) esconderLoading();
+    esconderLoading();
   }
 }
 
@@ -245,30 +314,29 @@ async function carregarJogos() {
   tituloJogos.textContent = "Jogos";
   document.title = "XTscores | Jogos";
   const chave = chaveAtual();
-  if (cacheJogos[chave]) {
-    jogosAtuais = cacheJogos[chave];
+  const cached = cacheJogos[chave];
+  if (cacheValido(cached)) {
+    jogosAtuais = cached.dados;
     desenharJogos();
-  } else {
-    jogosAtuais = [];
-    matchesEl.textContent = "";
+    return;
   }
-  const primeira = !cacheJogos[chave];
-  if (primeira) mostrarLoading();
+  mostrarLoading();
   try {
     const code = leagueSelect.value;
     const rodada = roundSelect.value;
     const data = await buscar(`/api/rodada/${code}${rodada ? `?rodada=${rodada}` : ""}`);
     if (chaveAtual() !== `${code}-${rodada || "atual"}`) return;
     if (data.error) {
-      if (primeira) matchesEl.textContent = data.error;
+      matchesEl.innerHTML = `<p class="vazio">${data.error}</p>`;
       return;
     }
     preencherRodadas(data.rodadaAtual || 1, data.rodada || 1, data.totalRodadas || 38);
-    jogosAtuais = marcarPernas(data.matches || []);
-    cacheJogos[chaveAtual()] = jogosAtuais;
+    const novos = marcarPernas(data.matches || []);
+    cacheJogos[chaveAtual()] = { dados: novos, salvoEm: Date.now() };
+    jogosAtuais = novos;
     desenharJogos();
   } finally {
-    if (primeira) esconderLoading();
+    esconderLoading();
   }
 }
 
@@ -280,31 +348,27 @@ async function carregarTabela() {
     return;
   }
   tituloTabela.classList.remove("escondido");
-  if (cacheTabela[code]) tableEl.innerHTML = cacheTabela[code];
-  const primeira = !cacheTabela[code];
-  if (primeira) mostrarLoading();
+  const cached = cacheTabela[code];
+  if (cacheValido(cached)) {
+    tableEl.innerHTML = cached.dados;
+    return;
+  }
+  mostrarLoading();
   try {
     const data = await buscar(`/api/tabela/${code}`);
     if (leagueSelect.value !== code) return;
     if (data.error) {
-      if (primeira) tableEl.textContent = data.error;
+      tableEl.innerHTML = `<p>${data.error}</p>`;
       return;
     }
     const rows = data.standings?.[0]?.table || [];
-    const brasileirao = code === "BSA";
     const html = `
-      ${brasileirao ? `
-        <p class="legenda">
-          <span><i class="l"></i>Libertadores</span>
-          <span><i class="p"></i>Pré-Libertadores</span>
-          <span><i class="s"></i>Sul-Americana</span>
-          <span><i class="z"></i>Rebaixamento</span>
-        </p>` : ""}
+      <p class="legenda">${legenda(code)}</p>
       <table>
         <thead><tr><th>#</th><th>Time</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead>
         <tbody>
           ${rows.map(r => `
-            <tr class="${brasileirao ? zona(r.position) : ""}">
+            <tr class="${zona(code, r.position)}">
               <td>${r.position}</td>
               <td>${nomeTime(r.team)}</td>
               <td>${r.points}</td>
@@ -318,10 +382,10 @@ async function carregarTabela() {
         </tbody>
       </table>
     `;
-    cacheTabela[code] = html;
+    cacheTabela[code] = { dados: html, salvoEm: Date.now() };
     if (leagueSelect.value === code) tableEl.innerHTML = html;
   } finally {
-    if (primeira) esconderLoading();
+    esconderLoading();
   }
 }
 
@@ -423,6 +487,18 @@ document.addEventListener("click", (e) => {
 });
 pintarPicker();
 
+const popup = document.querySelector("#popup-teste");
+const fecharPopup = document.querySelector("#fechar-popup");
+if (popup && fecharPopup) {
+  fecharPopup.onclick = () => popup.style.display = "none";
+}
+
 carregarJogos();
 carregarTabela();
-setInterval(carregarJogos, 180_000);
+setInterval(carregarJogos, 5 * 60 * 1000);
+
+
+
+
+
+
