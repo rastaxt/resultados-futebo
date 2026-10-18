@@ -128,7 +128,7 @@ function card(m) {
   const perna = m.perna ? `<br>${m.perna}` : `<br>R${m.matchday || "-"}`;
   const casa = nomeTime(m.homeTeam);
   const fora = nomeTime(m.awayTeam);
-  const texto = encodeURIComponent(`Palpite: ${casa} x ${fora}`);
+  const texto = encodeURIComponent(`Olá! gostaria de conhecer a plataforma`);
   const palpite = (encerrado || cancelado) ? "" : `
     <a class="palpite" href="https://wa.me/${WHATSAPP}?text=${texto}" target="_blank" rel="noopener">Palpite $</a>
   `;
