@@ -490,5 +490,19 @@ footer p {
   }
 
   .placar { font-size: 15px; }
-  .palpite { padding: 4px 7px; font-size: 11px; }
+
+  .estado-area {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .palpite {
+    order: -1;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .estado {
+    text-align: right;
+    min-width: auto;
+  }
 }
