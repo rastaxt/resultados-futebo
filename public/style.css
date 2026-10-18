@@ -461,13 +461,32 @@ footer p {
   }
 
   .match {
-    grid-template-columns: 64px 1fr 48px 1fr auto;
+    grid-template-columns: 60px 1fr 48px 1fr auto;
     gap: 6px;
-    padding: 10px 10px;
+    padding: 10px 8px;
   }
 
-  .escudo { width: 22px; height: 22px; flex-basis: 22px; }
+  .casa, .fora {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+  .casa { align-items: flex-end; }
+  .fora { align-items: flex-start; }
+
+  .time {
+    font-size: 11px;
+    max-width: 68px;
+    white-space: normal;
+    line-height: 1.2;
+  }
+
+  .escudo {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+
   .placar { font-size: 15px; }
-  .time { font-size: 13px; }
   .palpite { padding: 4px 8px; font-size: 11px; }
 }
