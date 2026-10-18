@@ -249,23 +249,10 @@ input, select, button {
   font-weight: 700;
   text-decoration: none;
   border-radius: 8px;
-  padding: 5px 10px 5px 22px;
+  padding: 5px 10px;
   font-size: 12px;
   white-space: nowrap;
   animation: pulso-botao 1.6s infinite;
-}
-.palpite::before {
-  content: "";
-  position: absolute;
-  left: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #3ddc84;
-  box-shadow: 0 0 0 0 rgba(61, 220, 132, 0.7);
-  animation: pulso 1.4s infinite;
 }
 .palpite:hover { background: #187a41; }
 
@@ -518,7 +505,7 @@ footer p {
   }
   .palpite {
     order: -1;
-    padding: 4px 8px 4px 20px;
+    padding: 4px 8px;
     font-size: 11px;
   }
   .estado {
