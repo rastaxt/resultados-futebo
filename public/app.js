@@ -124,24 +124,26 @@ function card(m) {
   const encerrado = m.status === "FINISHED";
   const cancelado = m.status === "CANCELLED";
   const bolinha = vivo ? `<span class="bolinha"></span>` : "";
-  const minuto = vivo && m.minute ? `<br>${m.minute}'` : "";
-  const perna = m.perna ? `<br>${m.perna}` : `<br>R${m.matchday || "-"}`;
+  const minuto = vivo && m.minute ? ` ${m.minute}'` : "";
   const casa = nomeTime(m.homeTeam);
   const fora = nomeTime(m.awayTeam);
   const texto = encodeURIComponent(`Olá! gostaria de conhecer a plataforma`);
   const palpite = (encerrado || cancelado) ? "" : `
     <a class="palpite" href="https://wa.me/${WHATSAPP}?text=${texto}" target="_blank" rel="noopener">Palpite $</a>
   `;
+
   return `
     <div class="jogo">
       <button class="match" data-id="${m.id}">
         <span class="quando">${quando(m.utcDate)}</span>
         <span class="casa">${escudo(m.homeTeam, "casa")}</span>
-        <span class="placar">${placar(m)}</span>
+        <span class="placar">
+          ${placar(m)}
+          <span class="status-placar ${statusClasse(m.status)}">${bolinha}${statusLabel[m.status] || m.status}${minuto}</span>
+        </span>
         <span class="fora">${escudo(m.awayTeam, "fora")}</span>
         <span class="estado-area">
           ${palpite}
-          <span class="estado ${statusClasse(m.status)}">${bolinha}${statusLabel[m.status] || m.status}${minuto}${perna}</span>
         </span>
       </button>
     </div>

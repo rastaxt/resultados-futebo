@@ -190,7 +190,7 @@ input, select, button {
 
 .match {
   display: grid;
-  grid-template-columns: 80px 1fr 56px 1fr 130px;
+  grid-template-columns: 80px 1fr 70px 1fr 130px;
   gap: 8px;
   align-items: center;
   width: 100%;
@@ -205,15 +205,6 @@ input, select, button {
 
 .quando, .estado { font-size: 12px; line-height: 1.35; }
 .quando { color: #9fb0c0; text-align: center; }
-.estado {
-  text-align: right;
-  color: #9fb0c0;
-  min-width: 68px;
-}
-.estado.agendado { color: #4da3ff; }
-.estado.encerrado { color: #fff; }
-.estado.aovivo { color: #3ddc84; }
-.estado.cancelado { color: #ff5c5c; }
 
 .casa, .fora {
   display: flex;
@@ -229,7 +220,23 @@ input, select, button {
   font-weight: 700;
   font-size: 16px;
   letter-spacing: 0.04em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
+
+.status-placar {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+.status-placar.aovivo { color: #3ddc84; }
+.status-placar.encerrado { color: #fff; }
+.status-placar.agendado { color: #4da3ff; }
+.status-placar.cancelado { color: #ff5c5c; }
 
 .escudo { width: 26px; height: 26px; object-fit: contain; flex: 0 0 26px; }
 .time { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -249,8 +256,8 @@ input, select, button {
   font-weight: 700;
   text-decoration: none;
   border-radius: 8px;
-  padding: 5px 10px;
-  font-size: 12px;
+  padding: 8px 16px;
+  font-size: 14px;
   white-space: nowrap;
   animation: pulso-botao 1.6s infinite;
 }
@@ -339,59 +346,6 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 
 .vazio { text-align: center; color: #9fb0c0; }
 
-.popup-teste {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 20, 25, 0.75);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 16px;
-}
-.popup-conteudo {
-  background: #182029;
-  border: 1px solid #31404d;
-  border-radius: 12px;
-  padding: 24px 28px;
-  max-width: 420px;
-  width: 100%;
-  position: relative;
-  color: #e7ecf1;
-  font-family: Outfit, system-ui, sans-serif;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-}
-.popup-conteudo h3 {
-  margin: 0 0 12px;
-  font-size: 1.3rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-.popup-conteudo p {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.5;
-  color: #c5d0db;
-}
-.fechar-popup {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  background: transparent;
-  border: 0;
-  color: #ff5c5c;
-  font-size: 22px;
-  font-weight: 700;
-  cursor: pointer;
-  line-height: 1;
-  padding: 4px 8px;
-  border-radius: 6px;
-}
-.fechar-popup:hover {
-  background: rgba(255, 92, 92, 0.15);
-  color: #ff3b3b;
-}
-
 footer {
   margin-top: 48px;
   padding: 32px 16px;
@@ -468,7 +422,7 @@ footer p {
   }
 
   .match {
-    grid-template-columns: 58px 1fr 46px 1fr auto;
+    grid-template-columns: 58px 1fr 60px 1fr auto;
     gap: 4px;
     padding: 10px 6px;
   }
@@ -498,18 +452,10 @@ footer p {
 
   .placar { font-size: 15px; }
 
-  .estado-area {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
-  }
+  .status-placar { font-size: 10px; }
+
   .palpite {
-    order: -1;
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-  .estado {
-    text-align: right;
-    min-width: auto;
+    padding: 7px 14px;
+    font-size: 13px;
   }
 }
