@@ -239,8 +239,13 @@ input, select, button {
 .status-placar.agendado { color: #4da3ff; }
 .status-placar.cancelado { color: #ff5c5c; }
 
-.escudo { width: 26px; height: 26px; object-fit: contain; flex: 0 0 26px; }
-.time { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.escudo { width: 30px; height: 30px; object-fit: contain; flex: 0 0 30px; }
+.time { 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  font-size: 15px;
+}
 
 .estado-area {
   display: flex;
