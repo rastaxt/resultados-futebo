@@ -465,9 +465,9 @@ footer p {
   .status-placar { font-size: 9px; }
 
 .palpite {
-  padding: 9px 18px;
-  font-size: 15px;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+  padding: 7px 14px;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
 }
 }
