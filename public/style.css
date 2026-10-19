@@ -223,12 +223,13 @@ input, select, button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
+  padding-top: 8px;
 }
 
 .status-placar {
   display: block;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 0;
   line-height: 1.2;
@@ -450,12 +451,9 @@ footer p {
     flex-basis: 32px;
   }
 
-  .placar { font-size: 15px; }
-
-  .status-placar { font-size: 10px; }
-
-  .palpite {
-    padding: 7px 14px;
-    font-size: 13px;
-  }
+.placar { 
+  font-size: 15px; 
+  padding-top: 6px;
+}
+.status-placar { font-size: 9px; }
 }
