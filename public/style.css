@@ -262,8 +262,9 @@ input, select, button {
   font-weight: 700;
   text-decoration: none;
   border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 9px 18px;
+  font-size: 15px;
+  letter-spacing: 0.6px;
   white-space: nowrap;
   animation: pulso-botao 1.6s infinite;
 }
@@ -462,8 +463,9 @@ footer p {
   }
   .status-placar { font-size: 9px; }
 
-  .palpite {
-    padding: 7px 14px;
-    font-size: 13px;
-  }
+.palpite {
+  padding: 8px 16px;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
 }
