@@ -431,7 +431,7 @@ const emblemas = {
   BL1: "https://crests.football-data.org/BL1.png",
   FL1: "https://crests.football-data.org/FL1.png",
   CL: "/champions.png",
-  DED: "/eredivisie.png",
+  DED: "https://crests.football-data.org/DED.png",
   PPL: "https://crests.football-data.org/PPL.png",
   ELC: "https://crests.football-data.org/ELC.png"
 };
@@ -487,18 +487,6 @@ document.addEventListener("click", (e) => {
 });
 pintarPicker();
 
-const popup = document.querySelector("#popup-teste");
-const fecharPopup = document.querySelector("#fechar-popup");
-if (popup && fecharPopup) {
-  fecharPopup.onclick = () => popup.style.display = "none";
-}
-
 carregarJogos();
 carregarTabela();
 setInterval(carregarJogos, 5 * 60 * 1000);
-
-
-
-
-
-
