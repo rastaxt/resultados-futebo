@@ -239,6 +239,10 @@ input, select, button {
 .status-placar.agendado { color: #4da3ff; }
 .status-placar.cancelado { color: #ff5c5c; }
 
+.status-placar .bolinha {
+  margin-right: 5px;
+}
+
 .escudo { width: 30px; height: 30px; object-fit: contain; flex: 0 0 30px; }
 .time { 
   white-space: nowrap; 
@@ -464,20 +468,10 @@ footer p {
   }
   .status-placar { font-size: 9px; }
 
-.palpite {
-  padding: 7px 14px;
-  font-size: 13px;
-  letter-spacing: 0;
-  text-transform: none;
-}
-.bolinha {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #3ddc84;
-  box-shadow: 0 0 0 0 rgba(61, 220, 132, 0.7);
-  animation: pulso 1.4s infinite;
-  margin-right: 5px;
-}
+  .palpite {
+    padding: 7px 14px;
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
 }
