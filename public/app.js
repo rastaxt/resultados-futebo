@@ -433,7 +433,7 @@ const emblemas = {
   BL1: "https://crests.football-data.org/BL1.png",
   FL1: "https://crests.football-data.org/FL1.png",
   CL: "/champions.png",
-  DED: "https://crests.football-data.org/DED.png",
+  DED: "/eredivisie.png",
   PPL: "https://crests.football-data.org/PPL.png",
   ELC: "https://crests.football-data.org/ELC.png"
 };
