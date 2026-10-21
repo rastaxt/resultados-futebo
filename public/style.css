@@ -12,10 +12,30 @@ header, main {
 }
 header {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   padding-bottom: 0;
 }
 .logo { width: 250px; height: auto; }
+
+.banner-whatsapp {
+  display: block;
+  margin: 18px auto 8px;
+  max-width: 728px;
+  width: 100%;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.banner-whatsapp:hover {
+  transform: scale(1.02);
+  opacity: 0.92;
+  cursor: pointer;
+}
+.banner-whatsapp img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
 
 .topo {
   display: grid;
@@ -394,6 +414,11 @@ footer p {
     padding: 12px;
   }
   .logo { width: 180px; }
+
+  .banner-whatsapp {
+    margin: 12px auto 6px;
+    max-width: 100%;
+  }
 
   .topo {
     display: flex;
