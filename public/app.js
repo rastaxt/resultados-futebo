@@ -285,6 +285,7 @@ async function carregarHoje() {
   roundSelect.classList.add("escondido");
   tituloJogos.textContent = "Jogos de hoje";
   document.title = "XTscores | Jogos de hoje";
+
   const chave = "hoje";
   const cached = cacheJogos[chave];
   if (cacheValido(cached)) {
@@ -292,22 +293,49 @@ async function carregarHoje() {
     desenharJogos();
     return;
   }
+
   mostrarLoading();
   try {
-    const inicio = hoje();
-    const fim = new Date();
-    fim.setDate(fim.getDate() + 1);
-    const dateTo = fim.toISOString().slice(0, 10);
-    const data = await buscar(`/api/jogos?date=${inicio}&dateTo=${dateTo}`);
-    if (data.error) {
-      matchesEl.innerHTML = `<p class="vazio">${data.error}</p>`;
-      return;
+    let encontrou = false;
+    let dataBusca = new Date();
+    let tentativas = 0;
+
+    while (!encontrou && tentativas < 7) {
+      const inicio = dataBusca.toISOString().slice(0, 10);
+      const fim = new Date(dataBusca);
+      fim.setDate(fim.getDate() + 1);
+      const dateTo = fim.toISOString().slice(0, 10);
+
+      const data = await buscar(`/api/jogos?date=${inicio}&dateTo=${dateTo}`);
+      if (data.error) {
+        matchesEl.innerHTML = `<p class="vazio">${data.error}</p>`;
+        return;
+      }
+
+      const diaBr = dataBusca.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+      const jogosDoDia = (data.matches || []).filter(m => diaLocal(m.utcDate) === diaBr);
+
+      if (jogosDoDia.length > 0) {
+        const novos = marcarPernas(jogosDoDia);
+        cacheJogos[chave] = { dados: novos, salvoEm: Date.now() };
+        jogosAtuais = novos;
+
+        if (tentativas === 0) {
+          tituloJogos.textContent = "Jogos de hoje";
+        } else {
+          tituloJogos.textContent = "Próximos jogos";
+        }
+        desenharJogos();
+        encontrou = true;
+      } else {
+        dataBusca.setDate(dataBusca.getDate() + 1);
+        tentativas++;
+      }
     }
-    const hojeBr = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
-    const novos = marcarPernas((data.matches || []).filter(m => diaLocal(m.utcDate) === hojeBr));
-    cacheJogos[chave] = { dados: novos, salvoEm: Date.now() };
-    jogosAtuais = novos;
-    desenharJogos();
+
+    if (!encontrou) {
+      matchesEl.innerHTML = `<p class="vazio">Nenhum jogo encontrado nos próximos dias.</p>`;
+    }
   } finally {
     esconderLoading();
   }
