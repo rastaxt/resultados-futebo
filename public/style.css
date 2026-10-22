@@ -35,11 +35,15 @@ header {
   filter: brightness(1.08);
   cursor: pointer;
 }
-.banner-whatsapp img {
+.banner-desktop,
+.banner-mobile {
   width: 100%;
   height: auto;
   border-radius: 8px;
   display: block;
+}
+.banner-mobile {
+  display: none;
 }
 
 .topo {
@@ -447,13 +451,16 @@ footer p {
     margin-bottom: 6px;
   }
 
+  .banner-desktop {
+    display: none;
+  }
+  .banner-mobile {
+    display: block;
+    border-radius: 12px;
+  }
   .banner-whatsapp {
     margin: 8px auto 12px;
     max-width: 92%;
-  }
-  .banner-whatsapp img {
-    content: url("/banner-green-mobile.png");
-    border-radius: 12px;
   }
 
   .topo {
