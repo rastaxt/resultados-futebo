@@ -440,15 +440,15 @@ footer p {
 /* ========== MOBILE ========== */
 @media (max-width: 700px) {
   header, main {
-    padding: 6px 12px 0;
+    padding: 8px 14px 0;
   }
   .logo { 
-    width: 140px; 
-    margin-bottom: 0;
+    width: 130px; 
+    margin-bottom: 4px;
   }
 
   .banner-whatsapp {
-    margin: 4px auto 6px;
+    margin: 6px auto 10px;
     max-width: 100%;
   }
 
@@ -456,8 +456,8 @@ footer p {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    margin: 4px 0 10px;
+    gap: 10px;
+    margin: 8px 0 14px;
   }
 
   .lado-esquerdo,
@@ -471,34 +471,48 @@ footer p {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
   }
 
   .titulo-com-rodada {
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
+  }
+
+  .titulo-com-rodada h2 {
+    font-size: 1.45rem;
   }
 
   .titulo-com-rodada #round {
     position: static;
     left: auto;
     margin: 0 auto;
+    font-size: 13px;
+    padding: 6px 14px;
   }
 
   .liga-destaque img {
-    width: 70px;
-    height: 70px;
+    width: 64px;
+    height: 64px;
+  }
+
+  .list {
+    gap: 10px;
   }
 
   .match {
-    grid-template-columns: 52px 1fr 54px 1fr auto;
-    gap: 4px;
-    padding: 10px 6px;
+    grid-template-columns: 50px 1fr 50px 1fr auto;
+    gap: 6px;
+    padding: 12px 10px;
+    border-radius: 16px;
+    background: #1a232c;
+    border: 1px solid #2a3844;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 
   .casa, .fora {
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
     text-align: center;
     align-items: center;
   }
@@ -507,39 +521,50 @@ footer p {
   }
 
   .time {
-    font-size: 11px;
-    max-width: 60px;
+    font-size: 11.5px;
+    max-width: 68px;
     white-space: normal;
-    line-height: 1.15;
+    line-height: 1.2;
+    font-weight: 500;
   }
 
   .escudo {
-    width: 30px;
-    height: 30px;
-    flex-basis: 30px;
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
   }
 
   .placar { 
-    font-size: 14px; 
-    padding-top: 6px;
+    font-size: 15px; 
+    padding-top: 4px;
+    font-weight: 700;
   }
-  .status-placar { font-size: 9px; }
+  .status-placar { 
+    font-size: 10px; 
+    margin-top: 2px;
+  }
 
   .palpite {
-    padding: 6px 12px;
-    font-size: 12px;
-    letter-spacing: 0;
-    text-transform: none;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    border-radius: 10px;
+  }
+
+  .liga {
+    font-size: 1.05rem;
+    margin: 18px 0 6px;
   }
 
   .whatsapp-flutuante {
-    width: 52px;
-    height: 52px;
-    bottom: 16px;
-    right: 16px;
+    width: 54px;
+    height: 54px;
+    bottom: 18px;
+    right: 14px;
   }
   .whatsapp-flutuante img {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
   }
 }
