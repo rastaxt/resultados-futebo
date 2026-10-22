@@ -413,6 +413,30 @@ footer p {
   color: #e7ecf1;
 }
 
+.whatsapp-flutuante {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  width: 58px;
+  height: 58px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.whatsapp-flutuante:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+.whatsapp-flutuante img {
+  width: 34px;
+  height: 34px;
+}
+
 /* ========== MOBILE ========== */
 @media (max-width: 700px) {
   header, main {
@@ -506,5 +530,16 @@ footer p {
     font-size: 12px;
     letter-spacing: 0;
     text-transform: none;
+  }
+
+  .whatsapp-flutuante {
+    width: 52px;
+    height: 52px;
+    bottom: 16px;
+    right: 16px;
+  }
+  .whatsapp-flutuante img {
+    width: 30px;
+    height: 30px;
   }
 }
