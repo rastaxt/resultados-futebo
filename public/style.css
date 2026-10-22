@@ -272,12 +272,17 @@ input, select, button {
   margin-right: 5px;
 }
 
-.escudo { width: 30px; height: 30px; object-fit: contain; flex: 0 0 30px; }
+.escudo { 
+  width: 39px; 
+  height: 39px; 
+  object-fit: contain; 
+  flex: 0 0 39px; 
+}
 .time { 
   white-space: nowrap; 
   overflow: hidden; 
   text-overflow: ellipsis; 
-  font-size: 15px;
+  font-size: 19.5px;
 }
 
 .estado-area {
@@ -604,3 +609,8 @@ footer p {
     height: 60px;
   }
 }
+
+
+
+
+
