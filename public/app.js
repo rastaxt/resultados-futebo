@@ -119,6 +119,13 @@ function marcarPernas(jogos) {
       return { ...m, perna };
     });
 }
+function prioridadeStatus(status) {
+  if (status === "IN_PLAY" || status === "PAUSED") return 1;
+  if (status === "SCHEDULED" || status === "TIMED") return 2;
+  if (status === "FINISHED") return 3;
+  if (status === "CANCELLED" || status === "POSTPONED") return 4;
+  return 5;
+}
 function card(m) {
   const vivo = aoVivo(m);
   const encerrado = m.status === "FINISHED";
@@ -150,7 +157,10 @@ function card(m) {
   `;
 }
 function desenharJogos() {
-  const lista = soAoVivo ? jogosAtuais.filter(aoVivo) : jogosAtuais;
+  let lista = soAoVivo ? jogosAtuais.filter(aoVivo) : jogosAtuais;
+
+  lista = [...lista].sort((a, b) => prioridadeStatus(a.status) - prioridadeStatus(b.status));
+
   if (!lista.length) {
     matchesEl.innerHTML = `<p class="vazio">${soAoVivo ? "Não há jogos no momento." : "Nenhum jogo nessa seleção."}</p>`;
     return;
