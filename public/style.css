@@ -448,8 +448,12 @@ footer p {
   }
 
   .banner-whatsapp {
-    margin: 6px auto 12px;
-    max-width: 100%;
+    margin: 8px auto 12px;
+    max-width: 92%;
+  }
+  .banner-whatsapp img {
+    content: url("/banner-green-mobile.png");
+    border-radius: 12px;
   }
 
   .topo {
