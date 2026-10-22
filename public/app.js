@@ -9,7 +9,7 @@ const tituloTabela = document.querySelector("#titulo-tabela");
 const loading = document.querySelector("#loading");
 const botaoAoVivo = document.querySelector("#aovivo");
 const ligaDestaque = document.querySelector("#liga-destaque");
-const WHATSAPP = "5516993709602";
+const WHATSAPP = "5516974061534";
 const CACHE_MAX_IDADE = 5 * 60 * 1000;
 
 let cargas = 0;
