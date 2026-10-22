@@ -27,13 +27,15 @@ header {
 
 .banner-ligas {
   display: block;
-  margin: -16px auto 0;
+  margin: 0 auto;
   max-width: 920px;
   width: 100%;
+  transform: translateY(-24px);
+  margin-bottom: -24px;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 .banner-ligas:hover {
-  transform: scale(1.01);
+  transform: translateY(-24px) scale(1.01);
   opacity: 0.95;
   cursor: pointer;
 }
@@ -49,7 +51,7 @@ header {
   grid-template-columns: 200px 1fr 200px;
   align-items: center;
   gap: 12px;
-  margin: 0 0 -14px;
+  margin: 0 0 -18px;
 }
 
 .lado-esquerdo {
@@ -427,8 +429,13 @@ footer p {
   }
 
   .banner-ligas {
-    margin: -18px auto -4px;
+    margin: 0 auto;
     max-width: 100%;
+    transform: translateY(-26px);
+    margin-bottom: -26px;
+  }
+  .banner-ligas:hover {
+    transform: translateY(-26px) scale(1.01);
   }
 
   .topo {
@@ -436,7 +443,7 @@ footer p {
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    margin: 0 0 -16px;
+    margin: 0 0 -22px;
   }
 
   .lado-esquerdo,
