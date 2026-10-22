@@ -27,7 +27,7 @@ header {
 
 .banner-ligas {
   display: block;
-  margin: -10px auto 0;
+  margin: -16px auto 0;
   max-width: 920px;
   width: 100%;
   transition: transform 0.2s ease, opacity 0.2s ease;
@@ -49,7 +49,7 @@ header {
   grid-template-columns: 200px 1fr 200px;
   align-items: center;
   gap: 12px;
-  margin: 0 0 -8px;
+  margin: 0 0 -14px;
 }
 
 .lado-esquerdo {
@@ -423,11 +423,11 @@ footer p {
   .logo { 
     width: 170px; 
     margin-top: 0;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .banner-ligas {
-    margin: -12px auto -2px;
+    margin: -18px auto -4px;
     max-width: 100%;
   }
 
@@ -436,7 +436,7 @@ footer p {
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    margin: 0 0 -10px;
+    margin: 0 0 -16px;
   }
 
   .lado-esquerdo,
