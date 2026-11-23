@@ -3,15 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Política de Dados | XTscores</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Política de Dados e Cookies | XTscores</title>
+  <meta name="description" content="Como o XTscores trata dados de navegação, cookies e Google Analytics, conforme a LGPD.">
+  <meta name="robots" content="index,follow">
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="stylesheet" href="/style.css?v=1.1.0">
+  <script src="/consent.js?v=1.1.0" defer></script>
 </head>
 <body>
-  <main style="max-width: 720px; margin: 40px auto; padding: 16px;">
-    <h1>Política de Dados</h1>
-    <p>O XTscores não coleta dados pessoais dos usuários neste momento. As informações de jogos e classificações são obtidas de APIs públicas.</p>
-    <p>Esta página está em construção e será atualizada conforme o projeto evolui.</p>
-    <p><a href="/">← Voltar</a></p>
+  <header>
+    <a href="/" aria-label="XTscores — página inicial">
+      <img class="logo" src="/logo.png" alt="XTscores" width="170" height="114">
+    </a>
+  </header>
+
+  <main style="max-width: 720px; margin: 16px auto 40px; padding: 16px;">
+    <h1>Política de Dados e Cookies</h1>
+    <p class="modal-info">Última atualização: 23 de novembro de 2026</p>
+
+    <h2 style="text-align:left;">1. Quem somos</h2>
+    <p>O XTscores é um site de resultados e classificação de futebol. Dúvidas sobre esta política podem ser enviadas para <a href="/contato.html">nossa página de contato</a>.</p>
+
+    <h2 style="text-align:left;">2. Quais dados tratamos</h2>
+    <p>O XTscores <strong>não exige cadastro</strong> e não coleta nome, e-mail, telefone ou documentos. Tratamos apenas:</p>
+    <ul>
+      <li><strong>Preferência de cookies:</strong> guardada no armazenamento local do seu navegador (<code>localStorage</code>), com a chave <code>xtscores-consent</code>.</li>
+      <li><strong>Estatísticas de audiência:</strong> somente se você aceitar, usamos o Google Analytics 4 para medir páginas vistas, tempo de visita, navegador, dispositivo e região aproximada. O endereço IP é anonimizado.</li>
+    </ul>
+
+    <h2 style="text-align:left;">3. Cookies e tecnologias similares</h2>
+    <p>Ao aceitar, o Google Analytics pode gravar cookies como <code>_ga</code> e <code>_ga_*</code>, com validade de até 2 anos, para distinguir visitas. Se você recusar, nenhum cookie de análise é gravado e o script de medição não é carregado.</p>
+
+    <h2 style="text-align:left;">4. Base legal</h2>
+    <p>O tratamento das estatísticas de audiência ocorre com base no seu <strong>consentimento</strong> (art. 7º, I, da LGPD). A preferência de cookies é armazenada para respeitar a sua escolha.</p>
+
+    <h2 style="text-align:left;">5. Compartilhamento</h2>
+    <p>Quando autorizado, os dados de navegação são processados pelo Google (Google Analytics), que pode armazená-los fora do Brasil. Não vendemos nem cedemos dados a terceiros para outros fins.</p>
+
+    <h2 style="text-align:left;">6. Seus direitos</h2>
+    <p>Você pode, a qualquer momento: saber se tratamos dados seus, solicitar correção ou exclusão, e <strong>revogar o consentimento</strong>. Para revogar, use o botão abaixo ou limpe os dados do site no seu navegador.</p>
+    <p>
+      <button id="revisar-cookies" type="button">Revisar preferência de cookies</button>
+    </p>
+
+    <h2 style="text-align:left;">7. Dados esportivos</h2>
+    <p>Placares, escudos e classificações são fornecidos pela API pública <a href="https://www.football-data.org/" target="_blank" rel="noopener">football-data.org</a>. O XTscores não se responsabiliza por eventuais imprecisões da fonte.</p>
+
+    <h2 style="text-align:left;">8. Conteúdo e idade</h2>
+    <p>O XTscores não realiza nem intermedia apostas. Eventuais links de contato comercial são de responsabilidade do usuário. Conteúdo destinado a maiores de 18 anos.</p>
+
+    <p><a href="/">← Voltar para os jogos</a></p>
   </main>
+
+  <footer>
+    <p>Todos os direitos reservados a XTscores</p>
+    <div class="links-rodape">
+      <a href="/politica.html">Política de Dados e Cookies</a>
+      <a href="/contato.html">Contato</a>
+    </div>
+  </footer>
 </body>
 </html>

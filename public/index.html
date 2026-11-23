@@ -3,32 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>XTscores | Jogos</title>
-  <link rel="icon" href="/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <title>XTscores | Jogos de hoje e resultados ao vivo</title>
+  <meta name="description" content="Placares ao vivo, jogos de hoje e classificação atualizada do Brasileirão, Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Champions League e mais." />
+  <meta name="robots" content="index,follow" />
+  <meta name="theme-color" content="#0f1419" />
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FWNBPZRE7M"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-FWNBPZRE7M');
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="XTscores" />
+  <meta property="og:title" content="XTscores | Resultados de futebol ao vivo" />
+  <meta property="og:description" content="Placares ao vivo, jogos de hoje e classificação dos principais campeonatos de futebol." />
+  <meta property="og:image" content="/logo.png" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="XTscores | Resultados de futebol ao vivo" />
+  <meta name="twitter:description" content="Placares ao vivo, jogos de hoje e classificação dos principais campeonatos." />
+  <meta name="twitter:image" content="/logo.png" />
+
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://crests.football-data.org" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css?v=1.1.0" />
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "XTscores",
+      "alternateName": "XTscores Resultados",
+      "inLanguage": "pt-BR",
+      "description": "Placares ao vivo, jogos de hoje e classificação dos principais campeonatos de futebol."
+    }
   </script>
 </head>
 <body>
-  <div id="loading">
-    <div class="circulo"></div>
+  <div id="loading" role="status" aria-live="polite" aria-busy="false">
+    <div class="circulo" aria-hidden="true"></div>
     <p>Carregando</p>
   </div>
 
   <header>
-    <img class="logo" src="logo.png" alt="XTscores">
+    <img class="logo" src="/logo.png" alt="XTscores" width="170" height="114" />
     <a href="https://chat.whatsapp.com/EqBiTi6ALtKCvvlu4Bmzxw?s=cl&p=a&mlu=4&ilr=4" target="_blank" rel="noopener" class="banner-whatsapp">
-      <img class="banner-desktop" src="/banner-green.png" alt="Venha fazer parte do grupo do Green">
-      <img class="banner-mobile" src="/banner-green-mobile.png" alt="Venha fazer parte do grupo do Green">
+      <img class="banner-desktop" src="/banner-green.jpg" alt="Venha fazer parte do grupo do Green" width="728" height="90" loading="lazy" />
+      <img class="banner-mobile" src="/banner-green-mobile.jpg" alt="Venha fazer parte do grupo do Green" width="700" height="470" loading="lazy" />
     </a>
   </header>
 
@@ -36,7 +56,8 @@
     <div class="topo">
       <div class="lado-esquerdo">
         <div class="filtros">
-          <select id="league" class="escondido">
+          <label for="league" class="rotulo-oculto">Liga</label>
+          <select id="league" class="escondido" tabindex="-1" aria-hidden="true">
             <option value="">Todas as ligas</option>
             <option value="BSA">Brasileirão</option>
             <option value="PL">Premier League</option>
@@ -49,11 +70,13 @@
             <option value="PPL">Primeira Liga</option>
             <option value="ELC">Championship</option>
           </select>
+
           <div class="picker" id="picker">
-            <button type="button" class="picker-btn" id="picker-btn">
+            <button type="button" class="picker-btn" id="picker-btn"
+              aria-haspopup="listbox" aria-expanded="false" aria-controls="picker-lista">
               <span>Todas as ligas</span>
             </button>
-            <div class="picker-lista escondido" id="picker-lista"></div>
+            <div class="picker-lista escondido" id="picker-lista" role="listbox" aria-label="Escolher liga"></div>
           </div>
         </div>
       </div>
@@ -61,44 +84,48 @@
       <div class="titulo-area">
         <div class="titulo-com-rodada">
           <h2 id="titulo-jogos">Jogos</h2>
+          <label for="round" class="rotulo-oculto">Rodada</label>
           <select id="round"></select>
         </div>
       </div>
 
       <div class="lado-direito">
         <div id="liga-destaque" class="liga-destaque escondido"></div>
-        <button id="aovivo" type="button"><span class="bolinha"></span>AO VIVO</button>
+        <button id="aovivo" type="button" aria-pressed="false">
+          <span class="bolinha" aria-hidden="true"></span>AO VIVO
+        </button>
       </div>
     </div>
 
-    <section>
+    <section aria-label="Jogos">
       <div id="matches" class="list"></div>
     </section>
 
-    <section>
+    <section aria-label="Classificação">
       <h2 id="titulo-tabela" class="escondido">Classificação</h2>
       <div id="table"></div>
     </section>
   </main>
 
   <footer>
-    <img class="logo-rodape" src="logo.png" alt="XTscores">
+    <img class="logo-rodape" src="/logo.png" alt="XTscores" width="120" height="80" loading="lazy" />
     <p>Todos os direitos reservados a XTscores</p>
     <div class="links-rodape">
-      <a href="/politica.html">Política de Dados</a>
+      <a href="/politica.html">Política de Dados e Cookies</a>
       <a href="/contato.html">Contato</a>
     </div>
   </footer>
 
-  <dialog id="modal">
+  <dialog id="modal" aria-labelledby="detail-titulo">
     <article id="detail"></article>
-    <button id="close">Fechar</button>
+    <button id="close" type="button">Fechar</button>
   </dialog>
 
-  <a href="https://wa.me/5516974061534" target="_blank" rel="noopener" class="whatsapp-flutuante" title="Falar no WhatsApp">
-    <img src="/whatsapp.png" alt="WhatsApp">
+  <a href="https://wa.me/5516974061534" target="_blank" rel="noopener" class="whatsapp-flutuante" title="Falar no WhatsApp" aria-label="Falar no WhatsApp">
+    <img src="/whatsapp.png" alt="" width="68" height="68" loading="lazy" />
   </a>
 
-  <script src="app.js"></script>
+  <script src="/consent.js?v=1.1.0" defer></script>
+  <script src="/app.js?v=1.1.0" defer></script>
 </body>
 </html>

@@ -1,3 +1,11 @@
+/* XTscores — front-end */
+
+const FUSO = "America/Sao_Paulo";
+const WHATSAPP = "5516974061534";
+const CACHE_MAX_IDADE = 60 * 1000;
+const INTERVALO_AOVIVO = 60 * 1000;
+const INTERVALO_NORMAL = 5 * 60 * 1000;
+
 const leagueSelect = document.querySelector("#league");
 const roundSelect = document.querySelector("#round");
 const matchesEl = document.querySelector("#matches");
@@ -9,57 +17,34 @@ const tituloTabela = document.querySelector("#titulo-tabela");
 const loading = document.querySelector("#loading");
 const botaoAoVivo = document.querySelector("#aovivo");
 const ligaDestaque = document.querySelector("#liga-destaque");
-const WHATSAPP = "5516974061534";
-const CACHE_MAX_IDADE = 5 * 60 * 1000;
 
-let cargas = 0;
-let soAoVivo = false;
-let jogosAtuais = [];
-const cacheJogos = {};
-const cacheTabela = {};
-let modoHoje = true;
+const emblemas = {
+  BSA: "/brasiliirao.png",
+  PL: "/premier.png",
+  PD: "https://crests.football-data.org/PD.png",
+  SA: "https://crests.football-data.org/SA.png",
+  BL1: "https://crests.football-data.org/BL1.png",
+  FL1: "https://crests.football-data.org/FL1.png",
+  CL: "/champions.png",
+  DED: "/Eredivisie.png",
+  PPL: "https://crests.football-data.org/PPL.png",
+  ELC: "https://crests.football-data.org/ELC.png"
+};
 
-function chaveAtual() {
-  return leagueSelect.value ? `${leagueSelect.value}-${roundSelect.value || "atual"}` : "hoje";
-}
-function cacheValido(item) {
-  if (!item) return false;
-  return Date.now() - item.salvoEm < CACHE_MAX_IDADE;
-}
-function mostrarLoading() {
-  cargas++;
-  loading.classList.add("ativo");
-}
-function esconderLoading() {
-  cargas = Math.max(0, cargas - 1);
-  if (cargas === 0) loading.classList.remove("ativo");
-}
-function espera(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-function tempoDoLimite(msg) {
-  const n = Number(String(msg).match(/Wait (\d+)/)?.[1]);
-  return ((n || 20) + 3) * 1000;
-}
-async function buscar(url) {
-  while (true) {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.error && String(data.error).includes("429")) {
-      await espera(tempoDoLimite(data.error));
-      continue;
-    }
-    return data;
-  }
-}
-function aoVivo(m) {
-  return m.status === "IN_PLAY" || m.status === "PAUSED";
-}
-function nomeTime(time) {
-  const nome = time.shortName || time.name;
-  if (nome === "Barça") return "Barcelona";
-  return nome;
-}
+const nomesLiga = {
+  BSA: "Brasileirão",
+  PL: "Premier League",
+  PD: "La Liga",
+  SA: "Serie A",
+  BL1: "Bundesliga",
+  FL1: "Ligue 1",
+  CL: "Champions League",
+  DED: "Eredivisie",
+  PPL: "Primeira Liga",
+  ELC: "Championship"
+};
+
+const ORDEM_LIGAS = Object.keys(nomesLiga);
 
 const statusLabel = {
   SCHEDULED: "Agendado",
@@ -68,7 +53,9 @@ const statusLabel = {
   PAUSED: "Intervalo",
   FINISHED: "Encerrado",
   POSTPONED: "Adiado",
-  CANCELLED: "Cancelado"
+  SUSPENDED: "Suspenso",
+  CANCELLED: "Cancelado",
+  AWARDED: "Decidido"
 };
 
 const mataMata = new Set([
@@ -76,25 +63,83 @@ const mataMata = new Set([
   "ROUND_OF_16", "PLAYOFFS", "PRELIMINARY_ROUND", "QUALIFICATION"
 ]);
 
-function hoje() {
-  const d = new Date();
-  const mes = String(d.getMonth() + 1).padStart(2, "0");
-  const dia = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${mes}-${dia}`;
+/* ---------- Estado ---------- */
+
+let cargas = 0;
+let soAoVivo = false;
+let jogosAtuais = [];
+let modoHoje = true;
+let timerAtualizacao = null;
+const cacheJogos = {};
+const cacheTabela = {};
+
+/* ---------- Utilitários ---------- */
+
+const formatadorData = new Intl.DateTimeFormat("en-CA", {
+  timeZone: FUSO,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+});
+
+function escHtml(valor) {
+  return String(valor ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[c]);
 }
-function diaLocal(iso) {
-  return new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+
+function dataSP(deslocamentoDias = 0) {
+  const d = new Date(Date.now() + deslocamentoDias * 86400000);
+  return formatadorData.format(d);
+}
+function diaSP(iso) {
+  return formatadorData.format(new Date(iso));
 }
 function quando(iso) {
   const d = new Date(iso);
-  const data = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" });
-  const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
+  const data = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: FUSO });
+  const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: FUSO });
   return `${data}<br>${hora}`;
 }
-function escudo(time, lado) {
-  const img = `<img class="escudo" src="${time.crest || ""}" alt="">`;
-  const nome = `<span class="time">${nomeTime(time)}</span>`;
-  return lado === "casa" ? `${nome}${img}` : `${img}${nome}`;
+function espera(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+function tempoDoLimite(msg) {
+  const n = Number(String(msg || "").match(/(\d+)\s*(?:segundos?|seconds?)/i)?.[1]);
+  return (Math.min(n || 20, 60) + 2) * 1000;
+}
+function cacheValido(item) {
+  return Boolean(item) && Date.now() - item.salvoEm < CACHE_MAX_IDADE;
+}
+function mostrarLoading(silencioso = false) {
+  if (silencioso) return false;
+  cargas++;
+  loading.classList.add("ativo");
+  loading.setAttribute("aria-busy", "true");
+  return true;
+}
+function esconderLoading(exibido) {
+  if (!exibido) return;
+  cargas = Math.max(0, cargas - 1);
+  if (cargas === 0) {
+    loading.classList.remove("ativo");
+    loading.setAttribute("aria-busy", "false");
+  }
+}
+function chaveAtual() {
+  if (!leagueSelect.value) return "hoje";
+  return `${leagueSelect.value}-${roundSelect.value || "atual"}`;
+}
+function aoVivo(m) {
+  return m.status === "IN_PLAY" || m.status === "PAUSED";
+}
+function nomeTime(time) {
+  const nome = time?.shortName || time?.name || "—";
+  return nome === "Barça" ? "Barcelona" : nome;
 }
 function placar(m) {
   if (m.score?.fullTime?.home == null) return "x";
@@ -102,69 +147,144 @@ function placar(m) {
 }
 function statusClasse(status) {
   if (status === "IN_PLAY" || status === "PAUSED") return "aovivo";
-  if (status === "FINISHED") return "encerrado";
+  if (status === "FINISHED" || status === "AWARDED") return "encerrado";
   if (status === "SCHEDULED" || status === "TIMED") return "agendado";
-  if (status === "CANCELLED" || status === "POSTPONED") return "cancelado";
+  if (status === "CANCELLED" || status === "POSTPONED" || status === "SUSPENDED") return "cancelado";
   return "";
-}
-function marcarPernas(jogos) {
-  const vistos = new Set();
-  return [...jogos]
-    .sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate))
-    .map(m => {
-      if (!mataMata.has(m.stage)) return m;
-      const chave = [m.homeTeam.id, m.awayTeam.id].sort().join("-") + "|" + m.stage;
-      const perna = vistos.has(chave) ? "Volta" : "Ida";
-      vistos.add(chave);
-      return { ...m, perna };
-    });
 }
 function prioridadeStatus(status) {
   if (status === "IN_PLAY" || status === "PAUSED") return 1;
   if (status === "SCHEDULED" || status === "TIMED") return 2;
-  if (status === "FINISHED") return 3;
-  if (status === "CANCELLED" || status === "POSTPONED") return 4;
+  if (status === "FINISHED" || status === "AWARDED") return 3;
+  if (status === "CANCELLED" || status === "POSTPONED" || status === "SUSPENDED") return 4;
   return 5;
 }
+
+/* ---------- Busca com retry limitado ---------- */
+
+async function buscar(url, tentativas = 3) {
+  let ultimoErro = null;
+
+  for (let i = 0; i < tentativas; i++) {
+    let res;
+    try {
+      res = await fetch(url, { headers: { Accept: "application/json" } });
+    } catch {
+      ultimoErro = new Error("Sem conexão. Verifique sua internet.");
+      if (i < tentativas - 1) {
+        await espera(1500 * (i + 1));
+        continue;
+      }
+      throw ultimoErro;
+    }
+
+    let data = null;
+    try {
+      data = await res.json();
+    } catch {
+      /* resposta vazia ou não-JSON */
+    }
+
+    if (res.status === 429 || data?.code === 429) {
+      ultimoErro = new Error(data?.error || "Limite de consultas atingido. Tente em instantes.");
+      if (i < tentativas - 1) {
+        await espera(tempoDoLimite(data?.error));
+        continue;
+      }
+      throw ultimoErro;
+    }
+
+    if (!res.ok) {
+      throw new Error(data?.error || `Não foi possível carregar os dados (${res.status}).`);
+    }
+
+    return data || {};
+  }
+
+  throw ultimoErro || new Error("Não foi possível carregar os dados.");
+}
+
+/* ---------- Render ---------- */
+
+function escudo(time, lado) {
+  const img = time?.crest
+    ? `<img class="escudo" src="${escHtml(time.crest)}" alt="" loading="lazy" width="39" height="39">`
+    : `<span class="escudo escudo-vazio" aria-hidden="true"></span>`;
+  const nome = `<span class="time">${escHtml(nomeTime(time))}</span>`;
+  return lado === "casa" ? `${nome}${img}` : `${img}${nome}`;
+}
+
+function marcarPernas(jogos) {
+  const ordenados = [...jogos].sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
+  const chavePar = (m) =>
+    [m.homeTeam?.id, m.awayTeam?.id].sort().join("-") + "|" + m.stage;
+
+  const total = new Map();
+  for (const m of ordenados) {
+    if (!mataMata.has(m.stage)) continue;
+    const chave = chavePar(m);
+    total.set(chave, (total.get(chave) || 0) + 1);
+  }
+
+  const vistos = new Map();
+  return ordenados.map((m) => {
+    if (!mataMata.has(m.stage)) return m;
+    const chave = chavePar(m);
+    if ((total.get(chave) || 0) < 2) return m; // jogo único (ex.: final)
+    const n = (vistos.get(chave) || 0) + 1;
+    vistos.set(chave, n);
+    return { ...m, perna: n === 1 ? "Ida" : "Volta" };
+  });
+}
+
 function card(m) {
   const vivo = aoVivo(m);
-  const encerrado = m.status === "FINISHED";
-  const cancelado = m.status === "CANCELLED";
-  const bolinha = vivo ? `<span class="bolinha"></span>` : "";
-  const minuto = vivo && m.minute ? ` ${m.minute}'` : "";
+  const encerrado = m.status === "FINISHED" || m.status === "AWARDED";
+  const cancelado = ["CANCELLED", "POSTPONED", "SUSPENDED"].includes(m.status);
   const casa = nomeTime(m.homeTeam);
   const fora = nomeTime(m.awayTeam);
-  const texto = encodeURIComponent(`Olá! gostaria de conhecer a plataforma`);
-  const palpite = (encerrado || cancelado) ? "" : `
-    <a class="palpite" href="https://wa.me/${WHATSAPP}?text=${texto}" target="_blank" rel="noopener">Palpite $</a>
-  `;
+  const bolinha = vivo ? `<span class="bolinha"></span>` : "";
+  const minuto = vivo && m.minute ? ` ${m.minute}'` : "";
+  const rotulo = `${statusLabel[m.status] || m.status}${minuto}`;
+  const texto = encodeURIComponent("Olá! gostaria de conhecer a plataforma");
+  const palpite = encerrado || cancelado
+    ? ""
+    : `<a class="palpite" href="https://wa.me/${WHATSAPP}?text=${texto}" target="_blank" rel="noopener">Palpite $</a>`;
+  const perna = m.perna ? ` <span class="perna">${m.perna}</span>` : "";
 
   return `
     <div class="jogo">
-      <button class="match" data-id="${m.id}">
+      <div class="match">
+        <button type="button" class="match-abrir" data-id="${escHtml(m.id)}"
+          aria-label="Ver detalhes de ${escHtml(casa)} contra ${escHtml(fora)}"></button>
         <span class="quando">${quando(m.utcDate)}</span>
         <span class="casa">${escudo(m.homeTeam, "casa")}</span>
         <span class="placar">
           ${placar(m)}
-          <span class="status-placar ${statusClasse(m.status)}">${bolinha}${statusLabel[m.status] || m.status}${minuto}</span>
+          <span class="status-placar ${statusClasse(m.status)}">${bolinha}${rotulo}${perna}</span>
         </span>
         <span class="fora">${escudo(m.awayTeam, "fora")}</span>
-        <span class="estado-area">
-          ${palpite}
-        </span>
-      </button>
-    </div>
-  `;
+        <span class="estado-area">${palpite}</span>
+      </div>
+    </div>`;
 }
-function desenharJogos() {
-  let lista = soAoVivo ? jogosAtuais.filter(aoVivo) : jogosAtuais;
 
-  lista = [...lista].sort((a, b) => prioridadeStatus(a.status) - prioridadeStatus(b.status));
+function desenharJogos() {
+  let lista = soAoVivo ? jogosAtuais.filter(aoVivo) : [...jogosAtuais];
+
+  lista.sort(
+    (a, b) =>
+      prioridadeStatus(a.status) - prioridadeStatus(b.status) ||
+      new Date(a.utcDate) - new Date(b.utcDate)
+  );
 
   if (!lista.length) {
-    matchesEl.innerHTML = `<p class="vazio">${soAoVivo ? "Não há jogos no momento." : "Nenhum jogo nessa seleção."}</p>`;
+    matchesEl.innerHTML = `<p class="vazio">${
+      soAoVivo ? "Não há jogos ao vivo no momento." : "Nenhum jogo nessa seleção."
+    }</p>`;
     return;
   }
+
   if (modoHoje) {
     const grupos = new Map();
     for (const m of lista) {
@@ -172,38 +292,42 @@ function desenharJogos() {
       if (!grupos.has(nome)) grupos.set(nome, []);
       grupos.get(nome).push(m);
     }
+
     const ordem = [...grupos.entries()].sort((a, b) => {
-      const aBr = a[1][0]?.competition?.code === "BSA" ? 0 : 1;
-      const bBr = b[1][0]?.competition?.code === "BSA" ? 0 : 1;
-      return aBr - bBr;
+      const ia = ORDEM_LIGAS.indexOf(a[1][0]?.competition?.code);
+      const ib = ORDEM_LIGAS.indexOf(b[1][0]?.competition?.code);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
     });
-    matchesEl.innerHTML = ordem.map(([liga, itens]) => {
-      const code = itens[0]?.competition?.code || "";
-      const nome = nomesLiga[code] || liga;
-      const emblemaLiga = emblemas[code] || itens[0]?.competition?.emblem || "";
-      return `
-        <button type="button" class="liga" data-liga="${code}">
-          ${emblemaLiga ? `<img src="${emblemaLiga}" alt="">` : ""}${nome}
-        </button>
-        ${itens.map(card).join("")}
-      `;
-    }).join("");
+
+    matchesEl.innerHTML = ordem
+      .map(([liga, itens]) => {
+        const code = itens[0]?.competition?.code || "";
+        const nome = nomesLiga[code] || liga;
+        const emblemaLiga = emblemas[code] || itens[0]?.competition?.emblem || "";
+        return `
+          <button type="button" class="liga" data-liga="${escHtml(code)}">
+            ${emblemaLiga ? `<img src="${escHtml(emblemaLiga)}" alt="" loading="lazy">` : ""}${escHtml(nome)}
+          </button>
+          ${itens.map(card).join("")}`;
+      })
+      .join("");
     return;
   }
+
   matchesEl.innerHTML = lista.map(card).join("");
 }
 
 function zona(code, pos) {
   const regras = {
-    BSA: { c: [1,4], e: [5,6], conf: [7,12], r: [17,20] },
-    PL:  { c: [1,4], e: [5,5], conf: [6,6], r: [18,20] },
-    PD:  { c: [1,4], e: [5,5], conf: [6,6], r: [18,20] },
-    SA:  { c: [1,4], e: [5,5], conf: [6,6], r: [18,20] },
-    BL1: { c: [1,4], e: [5,5], conf: [6,6], r: [17,18] },
-    FL1: { c: [1,3], e: [4,4], conf: [5,5], r: [16,18] },
-    DED: { c: [1,2], e: [3,3], conf: [4,4], r: [16,18] },
-    PPL: { c: [1,2], e: [3,3], conf: [4,4], r: [16,18] },
-    ELC: { promo: [1,2], playoff: [3,6], r: [22,24] }
+    BSA: { c: [1, 4], e: [5, 6], conf: [7, 12], r: [17, 20] },
+    PL: { c: [1, 4], e: [5, 5], conf: [6, 6], r: [18, 20] },
+    PD: { c: [1, 4], e: [5, 5], conf: [6, 6], r: [18, 20] },
+    SA: { c: [1, 4], e: [5, 5], conf: [6, 6], r: [18, 20] },
+    BL1: { c: [1, 4], e: [5, 5], conf: [6, 6], r: [17, 18] },
+    FL1: { c: [1, 3], e: [4, 4], conf: [5, 5], r: [16, 18] },
+    DED: { c: [1, 2], e: [3, 3], conf: [4, 4], r: [16, 18] },
+    PPL: { c: [1, 2], e: [3, 3], conf: [4, 4], r: [16, 18] },
+    ELC: { promo: [1, 2], playoff: [3, 6], r: [22, 24] }
   };
   const r = regras[code];
   if (!r) return "";
@@ -223,310 +347,403 @@ function legenda(code) {
       <span><i class="europa"></i>Pré-Libertadores</span>
       <span><i class="conference"></i>Sul-Americana</span>
       <span><i class="rebaixamento"></i>Rebaixamento</span>`,
-    PL: `
-      <span><i class="champions"></i>Champions</span>
-      <span><i class="europa"></i>Europa League</span>
-      <span><i class="conference"></i>Conference</span>
-      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
-    PD: `
-      <span><i class="champions"></i>Champions</span>
-      <span><i class="europa"></i>Europa League</span>
-      <span><i class="conference"></i>Conference</span>
-      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
-    SA: `
-      <span><i class="champions"></i>Champions</span>
-      <span><i class="europa"></i>Europa League</span>
-      <span><i class="conference"></i>Conference</span>
-      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
-    BL1: `
-      <span><i class="champions"></i>Champions</span>
-      <span><i class="europa"></i>Europa League</span>
-      <span><i class="conference"></i>Conference</span>
-      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
-    FL1: `
-      <span><i class="champions"></i>Champions</span>
-      <span><i class="europa"></i>Europa League</span>
-      <span><i class="conference"></i>Conference</span>
-      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
-    DED: `
-      <span><i class="champions"></i>Champions</span>
-      <span><i class="europa"></i>Europa League</span>
-      <span><i class="conference"></i>Conference</span>
-      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
-    PPL: `
-      <span><i class="champions"></i>Champions</span>
-      <span><i class="europa"></i>Europa League</span>
-      <span><i class="conference"></i>Conference</span>
-      <span><i class="rebaixamento"></i>Rebaixamento</span>`,
     ELC: `
       <span><i class="promo"></i>Promoção</span>
       <span><i class="playoff"></i>Playoff</span>
       <span><i class="rebaixamento"></i>Rebaixamento</span>`
   };
-  return legendas[code] || "";
+  if (legendas[code]) return legendas[code];
+  if (!nomesLiga[code]) return "";
+  return `
+    <span><i class="champions"></i>Champions</span>
+    <span><i class="europa"></i>Europa League</span>
+    <span><i class="conference"></i>Conference</span>
+    <span><i class="rebaixamento"></i>Rebaixamento</span>`;
 }
 
 function preencherRodadas(atual, selecionada, total) {
-  const fim = total || 38;
-  if (roundSelect.options.length === fim && roundSelect.value == selecionada) return;
+  const fim = Math.max(1, Number(total) || 38);
+  const valor = String(selecionada || atual || 1);
+  if (roundSelect.options.length === fim && roundSelect.value === valor) return;
+
   roundSelect.innerHTML = "";
   for (let i = 1; i <= fim; i++) {
     const opt = document.createElement("option");
-    opt.value = i;
+    opt.value = String(i);
     opt.textContent = i === atual ? `Rodada ${i} (atual)` : `Rodada ${i}`;
     roundSelect.appendChild(opt);
   }
-  roundSelect.value = String(selecionada);
+  roundSelect.value = valor;
 }
 
-async function carregarHoje() {
+/* ---------- Carregamentos ---------- */
+
+async function carregarHoje({ forcar = false, silencioso = false } = {}) {
   modoHoje = true;
+  soAoVivo = false;
+  botaoAoVivo.classList.remove("ativo");
   botaoAoVivo.classList.remove("escondido");
+  botaoAoVivo.setAttribute("aria-pressed", "false");
   roundSelect.classList.add("escondido");
   tituloJogos.textContent = "Jogos de hoje";
   document.title = "XTscores | Jogos de hoje";
 
-  const chave = "hoje";
-  const cached = cacheJogos[chave];
+  if (forcar) delete cacheJogos.hoje;
+  const cached = cacheJogos.hoje;
   if (cacheValido(cached)) {
     jogosAtuais = cached.dados;
     desenharJogos();
     return;
   }
 
-  mostrarLoading();
+  const exibido = mostrarLoading(silencioso);
   try {
-    let encontrou = false;
-    let dataBusca = new Date();
-    let tentativas = 0;
+    /*
+     * A API filtra por data em UTC. Um jogo às 00:00 UTC pertence ao dia
+     * anterior no horário de Brasília, então buscamos uma janela maior e
+     * agrupamos pelo dia local.
+     */
+    const inicio = dataSP(-1);
+    const fim = dataSP(6);
+    const data = await buscar(`/api/jogos?date=${inicio}&dateTo=${fim}`);
 
-    while (!encontrou && tentativas < 7) {
-      const inicio = dataBusca.toISOString().slice(0, 10);
-      const fim = new Date(dataBusca);
-      fim.setDate(fim.getDate() + 1);
-      const dateTo = fim.toISOString().slice(0, 10);
+    const porDia = new Map();
+    for (const m of data.matches || []) {
+      const dia = diaSP(m.utcDate);
+      if (!porDia.has(dia)) porDia.set(dia, []);
+      porDia.get(dia).push(m);
+    }
 
-      const data = await buscar(`/api/jogos?date=${inicio}&dateTo=${dateTo}`);
-      if (data.error) {
-        matchesEl.innerHTML = `<p class="vazio">${data.error}</p>`;
+    for (let i = 0; i < 7; i++) {
+      const dia = dataSP(i);
+      const jogosDoDia = porDia.get(dia) || [];
+
+      if (jogosDoDia.length) {
+        const novos = marcarPernas(jogosDoDia);
+        cacheJogos.hoje = { dados: novos, salvoEm: Date.now() };
+        jogosAtuais = novos;
+        tituloJogos.textContent = i === 0 ? "Jogos de hoje" : "Próximos jogos";
+        document.title = `XTscores | ${tituloJogos.textContent}`;
+        desenharJogos();
         return;
       }
-
-      const diaBr = dataBusca.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
-      const jogosDoDia = (data.matches || []).filter(m => diaLocal(m.utcDate) === diaBr);
-
-      if (jogosDoDia.length > 0) {
-        const novos = marcarPernas(jogosDoDia);
-        cacheJogos[chave] = { dados: novos, salvoEm: Date.now() };
-        jogosAtuais = novos;
-
-        if (tentativas === 0) {
-          tituloJogos.textContent = "Jogos de hoje";
-        } else {
-          tituloJogos.textContent = "Próximos jogos";
-        }
-        desenharJogos();
-        encontrou = true;
-      } else {
-        dataBusca.setDate(dataBusca.getDate() + 1);
-        tentativas++;
-      }
     }
 
-    if (!encontrou) {
-      matchesEl.innerHTML = `<p class="vazio">Nenhum jogo encontrado nos próximos dias.</p>`;
-    }
+    jogosAtuais = [];
+    cacheJogos.hoje = { dados: [], salvoEm: Date.now() };
+    matchesEl.innerHTML = `<p class="vazio">Nenhum jogo encontrado nos próximos dias.</p>`;
+  } catch (err) {
+    jogosAtuais = [];
+    matchesEl.innerHTML = `<p class="vazio">${escHtml(err.message)}</p>`;
   } finally {
-    esconderLoading();
+    esconderLoading(exibido);
   }
 }
 
-async function carregarJogos() {
+async function carregarJogos({ forcar = false, silencioso = false } = {}) {
   if (!leagueSelect.value) {
-    carregarHoje();
+    await carregarHoje({ forcar, silencioso });
     return;
   }
+
   modoHoje = false;
   soAoVivo = false;
   botaoAoVivo.classList.remove("ativo");
   botaoAoVivo.classList.add("escondido");
   roundSelect.classList.remove("escondido");
+
+  const code = leagueSelect.value;
+  const rodada = roundSelect.value;
+  const chave = `${code}-${rodada || "atual"}`;
   tituloJogos.textContent = "Jogos";
-  document.title = "XTscores | Jogos";
-  const chave = chaveAtual();
+  document.title = `XTscores | ${nomesLiga[code] || "Jogos"}`;
+
+  if (forcar) delete cacheJogos[chave];
   const cached = cacheJogos[chave];
   if (cacheValido(cached)) {
     jogosAtuais = cached.dados;
     desenharJogos();
     return;
   }
-  mostrarLoading();
+
+  const exibido = mostrarLoading(silencioso);
   try {
-    const code = leagueSelect.value;
-    const rodada = roundSelect.value;
-    const data = await buscar(`/api/rodada/${code}${rodada ? `?rodada=${rodada}` : ""}`);
-    if (chaveAtual() !== `${code}-${rodada || "atual"}`) return;
-    if (data.error) {
-      matchesEl.innerHTML = `<p class="vazio">${data.error}</p>`;
-      return;
-    }
+    const url = `/api/rodada/${encodeURIComponent(code)}${rodada ? `?rodada=${encodeURIComponent(rodada)}` : ""}`;
+    const data = await buscar(url);
+    if (chaveAtual() !== chave && leagueSelect.value === code) return;
+
     preencherRodadas(data.rodadaAtual || 1, data.rodada || 1, data.totalRodadas || 38);
     const novos = marcarPernas(data.matches || []);
-    cacheJogos[chaveAtual()] = { dados: novos, salvoEm: Date.now() };
+    const registro = { dados: novos, salvoEm: Date.now() };
+    cacheJogos[chave] = registro;
+    if (data.rodada) cacheJogos[`${code}-${data.rodada}`] = registro;
     jogosAtuais = novos;
     desenharJogos();
+  } catch (err) {
+    jogosAtuais = [];
+    matchesEl.innerHTML = `<p class="vazio">${escHtml(err.message)}</p>`;
   } finally {
-    esconderLoading();
+    esconderLoading(exibido);
   }
 }
 
-async function carregarTabela() {
+async function carregarTabela({ forcar = false } = {}) {
   const code = leagueSelect.value;
+
   if (!code) {
     tituloTabela.classList.add("escondido");
     tableEl.innerHTML = "<p>Escolha uma liga para ver a tabela.</p>";
     return;
   }
+
   tituloTabela.classList.remove("escondido");
+
+  if (forcar) delete cacheTabela[code];
   const cached = cacheTabela[code];
   if (cacheValido(cached)) {
     tableEl.innerHTML = cached.dados;
     return;
   }
-  mostrarLoading();
+
+  const exibido = mostrarLoading();
   try {
-    const data = await buscar(`/api/tabela/${code}`);
+    const data = await buscar(`/api/tabela/${encodeURIComponent(code)}`);
     if (leagueSelect.value !== code) return;
-    if (data.error) {
-      tableEl.innerHTML = `<p>${data.error}</p>`;
+
+    const linhas = data.standings?.flatMap?.((s) => s.table || []) || [];
+
+    if (!linhas.length) {
+      tableEl.innerHTML = `<p class="vazio">Classificação indisponível para esta liga.</p>`;
       return;
     }
-    const rows = data.standings?.[0]?.table || [];
+
     const html = `
       <p class="legenda">${legenda(code)}</p>
       <table>
         <thead><tr><th>#</th><th>Time</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead>
         <tbody>
-          ${rows.map(r => `
+          ${linhas
+            .map(
+              (r) => `
             <tr class="${zona(code, r.position)}">
               <td>${r.position}</td>
-              <td>${nomeTime(r.team)}</td>
+              <td>${escHtml(nomeTime(r.team))}</td>
               <td>${r.points}</td>
               <td>${r.playedGames}</td>
               <td>${r.won}</td>
               <td>${r.draw}</td>
               <td>${r.lost}</td>
               <td>${r.goalDifference}</td>
-            </tr>
-          `).join("")}
+            </tr>`
+            )
+            .join("")}
         </tbody>
-      </table>
-    `;
+      </table>`;
+
     cacheTabela[code] = { dados: html, salvoEm: Date.now() };
     if (leagueSelect.value === code) tableEl.innerHTML = html;
+  } catch (err) {
+    tableEl.innerHTML = `<p class="vazio">${escHtml(err.message)}</p>`;
   } finally {
-    esconderLoading();
+    esconderLoading(exibido);
   }
 }
 
-matchesEl.addEventListener("click", async (e) => {
-  const liga = e.target.closest(".liga");
-  if (liga && liga.dataset.liga) {
+/* ---------- Modal de detalhes ---------- */
+
+async function abrirDetalhe(id) {
+  detail.innerHTML = `<h3 id="detail-titulo">Carregando…</h3>`;
+  if (!modal.open) modal.showModal();
+
+  try {
+    const res = await fetch(`/api/jogo/${encodeURIComponent(id)}`, {
+      headers: { Accept: "application/json" }
+    });
+    const m = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(m.error || "Não foi possível carregar o jogo.");
+
+    const gols = (m.goals || [])
+      .map(
+        (g) =>
+          `<li>${escHtml(g.minute)}' ${escHtml(g.scorer?.name || "Gol")} <span class="time-gol">(${escHtml(g.team?.name || "")})</span></li>`
+      )
+      .join("");
+
+    detail.innerHTML = `
+      <h3 id="detail-titulo">${escHtml(nomeTime(m.homeTeam))} ${placar(m)} ${escHtml(nomeTime(m.awayTeam))}</h3>
+      <p class="modal-info">${escHtml(m.competition?.name || "")} · ${escHtml(statusLabel[m.status] || m.status || "")}</p>
+      ${gols ? `<ul class="gols">${gols}</ul>` : ""}`;
+  } catch (err) {
+    detail.innerHTML = `
+      <h3 id="detail-titulo">Detalhes indisponíveis</h3>
+      <p class="modal-info">${escHtml(err.message)}</p>`;
+  }
+}
+
+/* ---------- Eventos ---------- */
+
+matchesEl.addEventListener("click", (e) => {
+  const liga = e.target.closest(".liga[data-liga]");
+  if (liga) {
     leagueSelect.value = liga.dataset.liga;
     leagueSelect.dispatchEvent(new Event("change"));
     pintarPicker();
     return;
   }
-  const btn = e.target.closest(".match");
-  if (!btn) return;
-  const res = await fetch(`/api/jogo/${btn.dataset.id}`);
-  const m = await res.json();
-  const gols = (m.goals || []).map(g => `${g.minute}' ${g.scorer?.name || ""} (${g.team?.name || ""})`).join("<br>") || "Sem gols registrados.";
-  detail.innerHTML = `
-    <h3>${nomeTime(m.homeTeam)} ${placar(m)} ${nomeTime(m.awayTeam)}</h3>
-    <p>${m.competition.name} · ${statusLabel[m.status] || m.status}</p>
-    <p>${gols}</p>
-  `;
-  modal.showModal();
+
+  const btn = e.target.closest(".match-abrir");
+  if (btn) abrirDetalhe(btn.dataset.id);
 });
 
-botaoAoVivo.onclick = () => {
+botaoAoVivo.addEventListener("click", () => {
   soAoVivo = !soAoVivo;
   botaoAoVivo.classList.toggle("ativo", soAoVivo);
+  botaoAoVivo.setAttribute("aria-pressed", String(soAoVivo));
   desenharJogos();
-};
-document.querySelector("#close").onclick = () => modal.close();
-leagueSelect.onchange = () => {
+});
+
+document.querySelector("#close").addEventListener("click", () => modal.close());
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) modal.close();
+});
+
+leagueSelect.addEventListener("change", () => {
   roundSelect.innerHTML = "";
   carregarJogos();
   carregarTabela();
-};
-roundSelect.onchange = carregarJogos;
+});
+roundSelect.addEventListener("change", () => carregarJogos());
 
-const emblemas = {
-  BSA: "/brasiliirao.png",
-  PL: "/premier.png",
-  PD: "https://crests.football-data.org/PD.png",
-  SA: "https://crests.football-data.org/SA.png",
-  BL1: "https://crests.football-data.org/BL1.png",
-  FL1: "https://crests.football-data.org/FL1.png",
-  CL: "/champions.png",
-  DED: "/Eredivisie.png",
-  PPL: "https://crests.football-data.org/PPL.png",
-  ELC: "https://crests.football-data.org/ELC.png"
-};
-const nomesLiga = {
-  BSA: "Brasileirão",
-  PL: "Premier League",
-  PD: "La Liga",
-  SA: "Serie A",
-  BL1: "Bundesliga",
-  FL1: "Ligue 1",
-  CL: "Champions League",
-  DED: "Eredivisie",
-  PPL: "Primeira Liga",
-  ELC: "Championship"
-};
+/* ---------- Seletor de ligas ---------- */
+
+const picker = document.querySelector("#picker");
 const pickerBtn = document.querySelector("#picker-btn");
 const pickerLista = document.querySelector("#picker-lista");
 
 function emblema(code) {
-  return emblemas[code] ? `<img class="emblema" src="${emblemas[code]}" alt="">` : "";
+  return emblemas[code] ? `<img class="emblema" src="${escHtml(emblemas[code])}" alt="" loading="lazy">` : "";
 }
+
 function atualizarDestaque() {
   const opt = leagueSelect.selectedOptions[0];
-  if (!opt.value || !emblemas[opt.value]) {
+  if (!opt || !opt.value || !emblemas[opt.value]) {
     ligaDestaque.classList.add("escondido");
     ligaDestaque.innerHTML = "";
     return;
   }
   ligaDestaque.classList.remove("escondido");
-  ligaDestaque.innerHTML = `<img src="${emblemas[opt.value]}" alt=""><span>${opt.textContent}</span>`;
+  ligaDestaque.innerHTML = `<img src="${escHtml(emblemas[opt.value])}" alt="" loading="lazy"><span>${escHtml(opt.textContent)}</span>`;
 }
+
 function pintarPicker() {
   const opt = leagueSelect.selectedOptions[0];
-  pickerBtn.innerHTML = `${emblema(opt.value)}<span>${opt.textContent}</span>`;
+  pickerBtn.innerHTML = `${emblema(opt?.value)}<span>${escHtml(opt?.textContent || "Todas as ligas")}</span>`;
   atualizarDestaque();
 }
-pickerLista.innerHTML = [...leagueSelect.options].map(opt => `
-  <button type="button" class="picker-item" data-value="${opt.value}">
-    ${emblema(opt.value)}<span>${opt.textContent}</span>
-  </button>
-`).join("");
-pickerBtn.onclick = () => pickerLista.classList.toggle("escondido");
-pickerLista.onclick = (e) => {
+
+function abrirPicker() {
+  pickerLista.classList.remove("escondido");
+  pickerBtn.setAttribute("aria-expanded", "true");
+}
+function fecharPicker({ focar = false } = {}) {
+  pickerLista.classList.add("escondido");
+  pickerBtn.setAttribute("aria-expanded", "false");
+  if (focar) pickerBtn.focus();
+}
+
+function montarPicker() {
+  pickerLista.innerHTML = [...leagueSelect.options]
+    .map(
+      (opt) => `
+      <button type="button" class="picker-item" role="option" data-value="${escHtml(opt.value)}"
+        aria-selected="${opt.selected ? "true" : "false"}">
+        ${emblema(opt.value)}<span>${escHtml(opt.textContent)}</span>
+      </button>`
+    )
+    .join("");
+}
+
+pickerBtn.addEventListener("click", () => {
+  if (pickerLista.classList.contains("escondido")) abrirPicker();
+  else fecharPicker();
+});
+
+pickerBtn.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    abrirPicker();
+    pickerLista.querySelector(".picker-item")?.focus();
+  }
+});
+
+pickerLista.addEventListener("keydown", (e) => {
+  const itens = [...pickerLista.querySelectorAll(".picker-item")];
+  const idx = itens.indexOf(document.activeElement);
+
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    itens[Math.min(idx + 1, itens.length - 1)]?.focus();
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    itens[Math.max(idx - 1, 0)]?.focus();
+  } else if (e.key === "Home") {
+    e.preventDefault();
+    itens[0]?.focus();
+  } else if (e.key === "End") {
+    e.preventDefault();
+    itens[itens.length - 1]?.focus();
+  } else if (e.key === "Escape") {
+    fecharPicker({ focar: true });
+  }
+});
+
+pickerLista.addEventListener("click", (e) => {
   const item = e.target.closest(".picker-item");
   if (!item) return;
   leagueSelect.value = item.dataset.value;
   leagueSelect.dispatchEvent(new Event("change"));
   pintarPicker();
-  pickerLista.classList.add("escondido");
-};
-document.addEventListener("click", (e) => {
-  if (!e.target.closest("#picker")) pickerLista.classList.add("escondido");
+  fecharPicker({ focar: true });
 });
-pintarPicker();
 
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("#picker")) fecharPicker();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !pickerLista.classList.contains("escondido")) {
+    fecharPicker({ focar: true });
+  }
+});
+
+/* ---------- Atualização automática ---------- */
+
+async function atualizar() {
+  if (document.hidden) return;
+  if (leagueSelect.value) await carregarJogos({ forcar: true, silencioso: true });
+  else await carregarHoje({ forcar: true, silencioso: true });
+}
+
+function agendarAtualizacao() {
+  clearTimeout(timerAtualizacao);
+  const intervalo = jogosAtuais.some(aoVivo) ? INTERVALO_AOVIVO : INTERVALO_NORMAL;
+  timerAtualizacao = setTimeout(async () => {
+    await atualizar();
+    agendarAtualizacao();
+  }, intervalo);
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    atualizar();
+    agendarAtualizacao();
+  }
+});
+
+/* ---------- Início ---------- */
+
+montarPicker();
+pintarPicker();
 carregarJogos();
 carregarTabela();
-setInterval(carregarJogos, 5 * 60 * 1000);
+agendarAtualizacao();
