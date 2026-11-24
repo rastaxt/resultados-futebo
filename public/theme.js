@@ -56,6 +56,9 @@
         /* sem persistência: aplica só nesta sessão */
       }
       aplicar(novo);
+      if (typeof window.XTtrack === "function") {
+        window.XTtrack("tema", novo === "light" ? "claro" : "escuro", "botao");
+      }
     });
   });
 

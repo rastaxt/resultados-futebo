@@ -3,11 +3,17 @@ const express = require("express");
 const compression = require("compression");
 const path = require("path");
 
+const analytics = require("./lib/analytics");
+const painel = require("./lib/painel");
+const rotas = require("./lib/rotas");
+
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const TOKEN = process.env.FOOTBALL_TOKEN;
 const BASE = "https://api.football-data.org/v4";
 const PUBLIC_DIR = path.join(__dirname, "public");
+
+const infoPainel = painel.iniciar();
 
 /* Competições exibidas no site (códigos da football-data.org). */
 const LIGAS = ["BSA", "PL", "PD", "SA", "BL1", "FL1", "CL", "DED", "PPL", "ELC"];
@@ -254,6 +260,11 @@ app.use((req, res, next) => {
   next();
 });
 
+/* ---------- Estatísticas e painel ---------- */
+
+rotas.montarColeta(app, analytics, painel);
+rotas.montarPainel(app, analytics, painel);
+
 app.use(
   express.static(PUBLIC_DIR, {
     setHeaders(res, filePath) {
@@ -360,5 +371,37 @@ app.use("/api", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`XTscores no ar em http://localhost:${PORT}`);
+  console.log(`Painel administrativo: http://localhost:${PORT}/admin`);
+
+  if (infoPainel.senhaInicial) {
+    console.log("");
+    console.log("=== PAINEL XTSCORES - SENHA INICIAL ===");
+    console.log(`Senha: ${infoPainel.senhaInicial}`);
+    console.log("Troque a senha em Configuracoes depois de entrar.");
+    console.log("=======================================");
+    console.log("");
+  }
+
+  if (painel.senhaDoAmbiente()) {
+    console.log("[painel] senha definida pela variavel ADMIN_SENHA.");
+  }
+
+  console.log(
+    `[painel] dados em ${analytics.DIR_DADOS}${
+      process.env.DADOS_DIR ? "" : " (defina DADOS_DIR para um disco persistente)"
+    }`
+  );
+
   if (!TOKEN) console.warn("Aviso: FOOTBALL_TOKEN não definido no .env");
+
+  const limpar = () =>
+    analytics
+      .limparAnteriores(painel.obter().retencaoDias)
+      .then((removidos) => {
+        if (removidos) console.log(`[painel] ${removidos} arquivo(s) antigo(s) removido(s).`);
+      })
+      .catch((err) => console.warn("[painel] limpeza:", err.message));
+
+  limpar();
+  setInterval(limpar, 6 * 3600 * 1000).unref();
 });

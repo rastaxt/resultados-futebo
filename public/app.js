@@ -153,6 +153,11 @@ function statusClasse(status) {
   if (status === "CANCELLED" || status === "POSTPONED" || status === "SUSPENDED") return "cancelado";
   return "";
 }
+
+/* Estatísticas próprias do site (sem cookies). */
+function rastrear(nome, valor, contexto) {
+  if (typeof window.XTtrack === "function") window.XTtrack(nome, valor, contexto);
+}
 function prioridadeStatus(status) {
   if (status === "IN_PLAY" || status === "PAUSED") return 1;
   if (status === "SCHEDULED" || status === "TIMED") return 2;
@@ -590,6 +595,15 @@ async function carregarTabela({ forcar = false } = {}) {
 /* ---------- Modal de detalhes ---------- */
 
 async function abrirDetalhe(id) {
+  const alvo = jogosAtuais.find((m) => String(m.id) === String(id));
+  if (alvo) {
+    rastrear(
+      "jogo_aberto",
+      `${nomeTime(alvo.homeTeam)} x ${nomeTime(alvo.awayTeam)}`,
+      alvo.competition?.code || ""
+    );
+  }
+
   detail.innerHTML = `<h3 id="detail-titulo">Carregando…</h3>`;
   if (!modal.open) modal.showModal();
 
@@ -636,6 +650,7 @@ matchesEl.addEventListener("click", (e) => {
 
 botaoAoVivo.addEventListener("click", () => {
   soAoVivo = !soAoVivo;
+  rastrear("ao_vivo", soAoVivo ? "ativado" : "desativado", leagueSelect.value || "todas");
   botaoAoVivo.classList.toggle("ativo", soAoVivo);
   botaoAoVivo.setAttribute("aria-pressed", String(soAoVivo));
   desenharJogos();
@@ -647,11 +662,19 @@ modal.addEventListener("click", (e) => {
 });
 
 leagueSelect.addEventListener("change", () => {
+  rastrear(
+    "liga",
+    leagueSelect.value || "todas",
+    leagueSelect.value ? nomesLiga[leagueSelect.value] : "Todas as ligas"
+  );
   roundSelect.innerHTML = "";
   carregarJogos();
   carregarTabela();
 });
-roundSelect.addEventListener("change", () => carregarJogos());
+roundSelect.addEventListener("change", () => {
+  rastrear("rodada", roundSelect.value, leagueSelect.value || "todas");
+  carregarJogos();
+});
 
 /* ---------- Seletor de ligas ---------- */
 

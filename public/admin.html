@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel | XTscores</title>
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Painel administrativo do XTscores: estatísticas anônimas de audiência, conteúdo e configurações de coleta.">
+  <meta name="theme-color" content="#0f1419">
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/theme.js?v=1.4.0"></script>
+  <link rel="stylesheet" href="/admin.css?v=1.4.0">
+</head>
+<body>
+  <!-- Login -->
+  <div id="tela-login" class="tela-login">
+    <form id="form-login" class="login-card" autocomplete="on">
+      <img class="login-logo" src="/logo.png" alt="XTscores" width="170" height="114">
+      <h1>Painel administrativo</h1>
+      <p class="login-sub">Acesso restrito à equipe do XTscores.</p>
+      <label class="campo">
+        <span>Senha</span>
+        <input type="password" id="login-senha" name="senha" autocomplete="current-password" required autofocus>
+      </label>
+      <button type="submit" class="btn primario largo" id="login-btn">Entrar</button>
+      <p class="login-erro" id="login-erro" role="alert"></p>
+      <a class="login-voltar" href="/">Voltar ao site</a>
+    </form>
+  </div>
+
+  <!-- Aplicação -->
+  <div id="app" class="app escondido">
+    <div id="progresso" class="progresso" aria-hidden="true"></div>
+
+    <aside class="lateral">
+      <div class="marca">
+        <img src="/logo.png" alt="" width="96" height="64">
+        <span>Painel</span>
+      </div>
+
+      <nav class="menu" aria-label="Seções do painel">
+        <button type="button" class="menu-item ativo" data-secao="visao" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 19V9m5 10V5m5 14v-7m5 7V3"/></svg>
+          Visão geral
+        </button>
+        <button type="button" class="menu-item" data-secao="tempo-real">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          Tempo real
+        </button>
+        <button type="button" class="menu-item" data-secao="conteudo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h9l5 5v11H5z"/><path d="M14 4v5h5"/></svg>
+          Conteúdo
+        </button>
+        <button type="button" class="menu-item" data-secao="config">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L14.5 3h-5l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.5h5l.4-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1Z"/></svg>
+          Configurações
+        </button>
+      </nav>
+
+      <div class="lateral-rodape">
+        <button id="tema" class="tema-btn" type="button" aria-label="Mudar para tema claro" title="Mudar para tema claro" aria-pressed="false">
+          <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+          <svg class="icone-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        </button>
+        <a class="lateral-link" href="/" target="_blank" rel="noopener">Ver site</a>
+        <button id="sair" class="lateral-link" type="button">Sair</button>
+      </div>
+    </aside>
+
+    <main class="conteudo">
+      <header class="barra">
+        <div class="barra-titulo">
+          <h1 id="titulo-secao">Visão geral</h1>
+          <p id="subtitulo">Carregando…</p>
+        </div>
+        <div class="barra-acoes" id="acoes-periodo">
+          <div class="segmentado" role="group" aria-label="Período">
+            <button type="button" data-dias="1">Hoje</button>
+            <button type="button" data-dias="7" class="ativo">7 dias</button>
+            <button type="button" data-dias="30">30 dias</button>
+            <button type="button" data-dias="90">90 dias</button>
+          </div>
+          <button type="button" id="atualizar" class="btn-icone" title="Atualizar" aria-label="Atualizar dados">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Visão geral -->
+      <section id="secao-visao" class="secao">
+        <div id="kpis" class="kpis"></div>
+
+        <div class="grid grid-2">
+          <article class="cartao">
+            <header class="cartao-topo">
+              <h2 id="titulo-serie">Visitas por dia</h2>
+              <div class="legenda-chart">
+                <span><i class="cor-verde"></i>Visualizações</span>
+                <span><i class="cor-azul"></i>Visitantes</span>
+              </div>
+            </header>
+            <div id="grafico-serie" class="grafico"></div>
+          </article>
+
+          <article class="cartao" id="cartao-horas">
+            <header class="cartao-topo">
+              <h2>Horários de pico</h2>
+              <span class="dica">Fuso de Brasília</span>
+            </header>
+            <div id="grafico-horas" class="grafico"></div>
+          </article>
+        </div>
+
+        <div class="grid grid-2">
+          <article class="cartao">
+            <h2>Páginas mais vistas</h2>
+            <div id="tabela-paginas"></div>
+          </article>
+          <article class="cartao">
+            <h2>De onde vêm</h2>
+            <div id="tabela-origens"></div>
+          </article>
+        </div>
+
+        <div class="grid grid-3">
+          <article class="cartao">
+            <h2>Dispositivos</h2>
+            <div id="donut-dispositivos"></div>
+          </article>
+          <article class="cartao">
+            <h2>Navegadores</h2>
+            <div id="lista-navegadores"></div>
+          </article>
+          <article class="cartao">
+            <h2>Sistemas</h2>
+            <div id="lista-sistemas"></div>
+          </article>
+        </div>
+
+        <div class="grid grid-2">
+          <article class="cartao">
+            <h2>Ligas mais acessadas</h2>
+            <div id="tabela-ligas"></div>
+          </article>
+          <article class="cartao">
+            <h2>Jogos mais abertos</h2>
+            <div id="tabela-jogos"></div>
+          </article>
+        </div>
+
+        <article class="cartao">
+          <h2>Engajamento</h2>
+          <div id="engajamento" class="mini-kpis"></div>
+        </article>
+
+        <p class="nota-lgpd">
+          Estatísticas anônimas e agregadas, sem cookies de análise. O IP não é armazenado: usamos apenas um
+          identificador embaralhado que muda todos os dias. Veja a
+          <a href="/politica.html" target="_blank" rel="noopener">Política de Dados</a>.
+        </p>
+      </section>
+
+      <!-- Tempo real -->
+      <section id="secao-tempo-real" class="secao escondido">
+        <div class="rt-hero">
+          <div>
+            <span class="rt-numero" id="rt-ativos">0</span>
+            <p>pessoas navegando nos últimos 5 minutos</p>
+          </div>
+          <span class="rt-selo"><i></i>Atualiza a cada 10 s</span>
+        </div>
+
+        <div class="grid grid-2">
+          <article class="cartao">
+            <h2>Páginas nos últimos 5 minutos</h2>
+            <div id="rt-paginas"></div>
+          </article>
+          <article class="cartao">
+            <h2>Últimos eventos</h2>
+            <div id="rt-eventos" class="feed"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Conteúdo -->
+      <section id="secao-conteudo" class="secao escondido">
+        <div class="grid grid-2">
+          <article class="cartao">
+            <h2>Todas as páginas</h2>
+            <div id="conteudo-paginas"></div>
+          </article>
+          <article class="cartao">
+            <h2>Origens de tráfego</h2>
+            <div id="conteudo-origens"></div>
+          </article>
+        </div>
+
+        <article class="cartao">
+          <h2>Eventos registrados</h2>
+          <p class="dica">Ações feitas no site: escolha de liga, abertura de jogos, cliques no WhatsApp e tema.</p>
+          <div id="conteudo-eventos"></div>
+        </article>
+
+        <div class="grid grid-2">
+          <article class="cartao">
+            <h2>Ligas selecionadas</h2>
+            <div id="conteudo-ligas"></div>
+          </article>
+          <article class="cartao">
+            <h2>Países</h2>
+            <div id="conteudo-paises"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Configurações -->
+      <section id="secao-config" class="secao escondido">
+        <article class="cartao">
+          <h2>Coleta de estatísticas</h2>
+          <p class="dica">
+            Estatísticas próprias, anônimas e sem cookies. Desligar a coleta interrompe novos registros,
+            mas mantém os dados já existentes.
+          </p>
+
+          <label class="linha-switch">
+            <span>
+              <strong>Coletar estatísticas</strong>
+              <small>Página vista, origem, dispositivo, cliques e tempo de leitura.</small>
+            </span>
+            <input type="checkbox" id="cfg-coleta" class="switch">
+          </label>
+
+          <label class="campo-linha">
+            <span>
+              <strong>Retenção dos dados</strong>
+              <small>Registros mais antigos são apagados automaticamente.</small>
+            </span>
+            <select id="cfg-retencao">
+              <option value="30">30 dias</option>
+              <option value="90">90 dias</option>
+              <option value="180">180 dias</option>
+              <option value="365">1 ano</option>
+              <option value="730">2 anos</option>
+            </select>
+          </label>
+
+          <div class="acoes-cartao">
+            <button type="button" id="cfg-salvar" class="btn primario">Salvar configurações</button>
+            <span id="cfg-status" class="status-linha" role="status"></span>
+          </div>
+        </article>
+
+        <article class="cartao">
+          <h2>Exportar dados</h2>
+          <p class="dica">Baixe os dados em CSV para abrir no Excel ou Google Sheets.</p>
+          <div class="exportar">
+            <label class="campo-inline">
+              <span>Período</span>
+              <select id="export-dias">
+                <option value="1">Hoje</option>
+                <option value="7" selected>7 dias</option>
+                <option value="30">30 dias</option>
+                <option value="90">90 dias</option>
+                <option value="365">1 ano</option>
+              </select>
+            </label>
+            <div class="botoes-exportar">
+              <button type="button" class="btn" data-export="resumo">Resumo diário</button>
+              <button type="button" class="btn" data-export="paginas">Páginas</button>
+              <button type="button" class="btn" data-export="eventos">Eventos</button>
+              <button type="button" class="btn" data-export="bruto">Registros brutos</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="cartao">
+          <h2>Senha do painel</h2>
+          <p class="dica" id="senha-ambiente" hidden>
+            A senha é definida pela variável de ambiente <code>ADMIN_SENHA</code>. Para trocá-la, atualize a
+            variável no servidor.
+          </p>
+          <form id="form-senha" class="form-senha">
+            <label class="campo">
+              <span>Senha atual</span>
+              <input type="password" id="senha-atual" autocomplete="current-password" required>
+            </label>
+            <label class="campo">
+              <span>Nova senha</span>
+              <input type="password" id="senha-nova" minlength="8" autocomplete="new-password" required>
+            </label>
+            <label class="campo">
+              <span>Confirmar nova senha</span>
+              <input type="password" id="senha-confirma" minlength="8" autocomplete="new-password" required>
+            </label>
+            <button type="submit" class="btn primario" id="senha-btn">Alterar senha</button>
+          </form>
+        </article>
+
+        <article class="cartao">
+          <h2>Google Analytics</h2>
+          <p class="dica">
+            O GA4 continua sendo carregado apenas quando o visitante aceita os cookies. Os números deste painel
+            são independentes e não dependem de consentimento porque não usam identificadores pessoais.
+          </p>
+          <a class="btn" href="https://analytics.google.com/" target="_blank" rel="noopener">Abrir Google Analytics</a>
+        </article>
+
+        <article class="cartao perigo">
+          <h2>Apagar dados</h2>
+          <p class="dica">
+            Ação irreversível. Exporte antes de apagar, se precisar guardar o histórico.
+          </p>
+          <div class="campo-linha">
+            <select id="limpar-escopo">
+              <option value="7">Mais de 7 dias</option>
+              <option value="30">Mais de 30 dias</option>
+              <option value="90">Mais de 90 dias</option>
+              <option value="365">Mais de 1 ano</option>
+              <option value="tudo">Todos os dados</option>
+            </select>
+            <button type="button" id="btn-limpar" class="btn perigo">Apagar</button>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
+
+  <script src="/admin.js?v=1.4.0" defer></script>
+</body>
+</html>
