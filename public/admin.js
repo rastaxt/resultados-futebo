@@ -30,6 +30,47 @@
     "/contato.html": "Contato"
   };
 
+  /* Unidades federativas na ordem usada pelo mapa (por região). */
+  var ESTADOS_BR = [
+    ["AC", "Acre"], ["AM", "Amazonas"], ["AP", "Amapá"], ["PA", "Pará"],
+    ["RO", "Rondônia"], ["RR", "Roraima"], ["TO", "Tocantins"],
+    ["AL", "Alagoas"], ["BA", "Bahia"], ["CE", "Ceará"], ["MA", "Maranhão"],
+    ["PB", "Paraíba"], ["PE", "Pernambuco"], ["PI", "Piauí"],
+    ["RN", "Rio Grande do Norte"], ["SE", "Sergipe"],
+    ["DF", "Distrito Federal"], ["GO", "Goiás"], ["MS", "Mato Grosso do Sul"],
+    ["MT", "Mato Grosso"],
+    ["ES", "Espírito Santo"], ["MG", "Minas Gerais"], ["RJ", "Rio de Janeiro"],
+    ["SP", "São Paulo"],
+    ["PR", "Paraná"], ["RS", "Rio Grande do Sul"], ["SC", "Santa Catarina"]
+  ];
+
+  function semAcento(valor) {
+    return String(valor == null ? "" : valor)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  var UF_POR_NOME = {};
+  var NOME_POR_UF = {};
+  ESTADOS_BR.forEach(function (estado) {
+    UF_POR_NOME[semAcento(estado[1])] = estado[0];
+    UF_POR_NOME[semAcento(estado[0])] = estado[0];
+    NOME_POR_UF[estado[0]] = estado[1];
+  });
+
+  function siglaEstado(nomeOuUf) {
+    var chave = semAcento(nomeOuUf);
+    return chave ? UF_POR_NOME[chave] || "" : "";
+  }
+
+  function rotuloEstado(nome, uf) {
+    var sigla = String(uf || siglaEstado(nome) || "").toUpperCase();
+    if (!nome) return sigla || "—";
+    return sigla ? sigla + " · " + nome : nome;
+  }
+
   var NOMES_EVENTOS = {
     liga: "Liga escolhida",
     rodada: "Rodada",
@@ -281,9 +322,12 @@
       estado.dados = dados;
 
       renderKpis(dados);
+      renderLocalidades(dados);
       renderSerie(dados);
       renderPaginas(dados);
       renderOrigens(dados);
+      renderCidades(dados);
+      renderEstados(dados);
       renderDispositivos(dados);
       renderNavegadores(dados);
       renderSistemas(dados);
@@ -323,8 +367,28 @@
     try {
       var config = await api("/api/admin/config");
       $("#cfg-coleta").checked = Boolean(config.coleta);
+      $("#cfg-geo").checked = config.geo !== false;
       $("#cfg-retencao").value = String(config.retencaoDias);
       $("#senha-ambiente").hidden = !config.senhaAmbiente;
+
+      var info = config.geoInfo || {};
+      var geoTexto = info.ativo
+        ? "Provedor " +
+          info.provedor +
+          " · consultas hoje: " +
+          numero(info.consultasHoje) +
+          " de " +
+          numero(info.limiteDia) +
+          " · até " +
+          numero(info.limiteIp) +
+          " por IP" +
+          " · IPs distintos: " +
+          numero(info.ipsDistintos) +
+          " · em cache: " +
+          numero(info.cache)
+        : "Estimativa desativada no servidor (GEO_MAX_DIA=0).";
+      if (info.ultimoErro) geoTexto += " · último erro: " + info.ultimoErro;
+      $("#geo-info").textContent = geoTexto;
 
       var desabilitar = Boolean(config.senhaAmbiente);
       ["#senha-atual", "#senha-nova", "#senha-confirma", "#senha-btn"].forEach(function (seletor) {
@@ -626,6 +690,69 @@
     );
   }
 
+  function rotuloLocal(cidade) {
+    var sigla = String(cidade.uf || siglaEstado(cidade.estado) || "").toUpperCase();
+    var estado = cidade.estado || "";
+    var repetido = semAcento(estado) === semAcento(cidade.cidade);
+    return [sigla, repetido ? "" : estado].filter(Boolean).join(" · ");
+  }
+
+  function tabelaCidades(cidades, limite) {
+    if (!cidades || !cidades.length) {
+      return vazio("Nenhuma cidade registrada ainda. A localização é estimada pelo IP, sem gravá-lo.");
+    }
+
+    var maximo = cidades[0].total || 1;
+    var linhas = cidades
+      .slice(0, limite || 8)
+      .map(function (cidade, i) {
+        return (
+          "<tr><td class=\"posicao\">" + (i + 1) + "</td>" +
+          '<td><span class="principal">' + esc(cidade.cidade) + "</span>" +
+          (cidade.estado || cidade.uf
+            ? '<span class="secundario">' + esc(rotuloLocal(cidade)) + "</span>"
+            : "") +
+          "</td>" +
+          '<td class="num">' + numero(cidade.total) + "</td>" +
+          '<td><div class="medidor"><i style="width:' + Math.round((cidade.total / maximo) * 100) + '%"></i></div></td></tr>'
+        );
+      })
+      .join("");
+
+    return (
+      '<table class="adm-tabela"><thead><tr><th scope="col">#</th><th scope="col">Cidade</th>' +
+      '<th scope="col" class="num">Visitas</th>' +
+      '<th scope="col"><span class="rotulo-oculto">Participação</span></th></tr></thead>' +
+      "<tbody>" + linhas + "</tbody></table>"
+    );
+  }
+
+  function tabelaEstados(estados, limite) {
+    if (!estados || !estados.length) {
+      return vazio("Nenhum estado registrado ainda. A localização é estimada pelo IP, sem gravá-lo.");
+    }
+
+    var maximo = estados[0].total || 1;
+    var linhas = estados
+      .slice(0, limite || 8)
+      .map(function (estado, i) {
+        return (
+          "<tr><td class=\"posicao\">" + (i + 1) + "</td>" +
+          '<td><span class="principal">' + esc(rotuloEstado(estado.nome)) + "</span></td>" +
+          '<td class="num">' + numero(estado.total) + "</td>" +
+          '<td><div class="medidor"><i style="width:' + Math.round((estado.total / maximo) * 100) + '%"></i></div></td></tr>'
+        );
+      })
+      .join("");
+
+    return (
+      '<table class="adm-tabela"><thead><tr><th scope="col">#</th><th scope="col">Estado</th>' +
+      '<th scope="col" class="num">Visitas</th>' +
+      '<th scope="col"><span class="rotulo-oculto">Participação</span></th></tr></thead>' +
+      "<tbody>" + linhas + "</tbody></table>"
+    );
+  }
+
   function listaBarras(itens, rotulo) {
     if (!itens.length) return vazio("Sem dados no período.");
     var maximo = itens[0].valor || 1;
@@ -707,12 +834,123 @@
 
   /* ---------- renderizações ---------- */
 
+  function mapaEstados(ufs, estados) {
+    var contagem = {};
+    var temUf = Boolean(ufs && ufs.length);
+
+    (ufs || []).forEach(function (item) {
+      if (item && item.uf) contagem[item.uf] = (contagem[item.uf] || 0) + item.total;
+    });
+
+    /* Registros antigos não têm UF: cai para o nome do estado. */
+    if (!temUf) {
+      (estados || []).forEach(function (item) {
+        var sigla = siglaEstado(item.nome);
+        if (sigla) contagem[sigla] = (contagem[sigla] || 0) + item.total;
+      });
+    }
+
+    var maior = 1;
+    var total = 0;
+    Object.keys(contagem).forEach(function (uf) {
+      if (contagem[uf] > maior) maior = contagem[uf];
+      total += contagem[uf];
+    });
+
+    return ESTADOS_BR.map(function (estado) {
+      var uf = estado[0];
+      var visitas = contagem[uf] || 0;
+      var nivel = visitas ? Math.max(0.14, visitas / maior) : 0;
+      var titulo =
+        estado[1] +
+        ": " +
+        numero(visitas) +
+        (total ? " · " + pct((visitas / total) * 100) + " das visitas localizadas" : "");
+
+      return (
+        '<div class="mapa-estado' +
+        (visitas ? "" : " vazio") +
+        '" role="listitem" tabindex="0" style="--nivel:' +
+        nivel.toFixed(2) +
+        '" title="' +
+        esc(titulo) +
+        '" aria-label="' +
+        esc(titulo) +
+        '"><strong>' +
+        uf +
+        "</strong><span>" +
+        (visitas ? numero(visitas) : "—") +
+        "</span></div>"
+      );
+    }).join("");
+  }
+
+  function renderLocalidades(dados) {
+    var loc = dados.localidades || {};
+    var topCidade = loc.topCidade || null;
+    var topEstado = loc.topEstado || null;
+    var visualizacoes = dados.kpis && dados.kpis.visualizacoes ? dados.kpis.visualizacoes.valor : 0;
+
+    $("#geo-resumo").innerHTML = [
+      ["Visitas localizadas", numero(loc.visitas || 0), "de " + numero(visualizacoes) + " visualizações"],
+      ["Cobertura", pct(loc.cobertura || 0), "das visitas com cidade/estado"],
+      ["Cidades", numero(loc.cidades || 0), "distintas no período"],
+      ["Estados", numero(loc.ufs || loc.estados || 0), "UFs identificadas"]
+    ]
+      .map(function (item) {
+        return (
+          '<div class="mini"><span>' + esc(item[0]) + "</span><strong>" + esc(item[1]) +
+          "</strong><small>" + esc(item[2]) + "</small></div>"
+        );
+      })
+      .join("");
+
+    $("#mapa-estados").innerHTML = mapaEstados(dados.ufs || [], dados.estados || []);
+
+    var partes = [];
+    if (topCidade) {
+      var localCidade = rotuloLocal(topCidade);
+      partes.push(
+        "Cidade com mais visitas: " +
+          topCidade.cidade +
+          (localCidade ? " (" + localCidade + ")" : "") +
+          " · " +
+          numero(topCidade.total)
+      );
+    }
+    if (topEstado) {
+      partes.push(
+        "Estado líder: " +
+          rotuloEstado(NOME_POR_UF[topEstado.uf] || topEstado.uf, topEstado.uf) +
+          " · " +
+          numero(topEstado.total)
+      );
+    }
+    if (!partes.length) {
+      partes.push(
+        "Ainda não há visitas com localização no período. A estimativa depende do IP e pode estar desligada nas Configurações."
+      );
+    }
+
+    $("#geo-nota").textContent = partes.join(" · ");
+  }
+
   function renderPaginas(dados) {
     $("#tabela-paginas").innerHTML = tabelaPaginas(dados.paginas, 6);
   }
 
   function renderOrigens(dados) {
     $("#tabela-origens").innerHTML = tabelaOrigens(dados.origens, 6);
+  }
+
+  function renderCidades(dados) {
+    $("#tabela-cidades").innerHTML = tabelaCidades(dados.cidades, 8);
+    $("#conteudo-cidades").innerHTML = tabelaCidades(dados.cidades, 30);
+  }
+
+  function renderEstados(dados) {
+    $("#tabela-estados").innerHTML = tabelaEstados(dados.estados, 8);
+    $("#conteudo-estados").innerHTML = tabelaEstados(dados.estados, 30);
   }
 
   function renderDispositivos(dados) {
@@ -810,6 +1048,19 @@
         )
       : vazio("Ninguém no site neste momento.");
 
+    var cidades = dados.cidades || [];
+    $("#rt-cidades").innerHTML = cidades.length
+      ? listaBarras(
+          cidades.map(function (cidade) {
+            var sigla = String(cidade.uf || siglaEstado(cidade.estado) || "").toUpperCase();
+            return {
+              nome: cidade.cidade + (sigla ? " (" + sigla + ")" : ""),
+              valor: cidade.valor
+            };
+          })
+        )
+      : vazio("Nenhuma localização nos últimos 5 minutos.");
+
     if (!dados.ultimos.length) {
       $("#rt-eventos").innerHTML = vazio("Nenhum evento recente.");
       return;
@@ -825,6 +1076,9 @@
         if (item.tipo === "pageview") {
           texto = "Abriu <strong>" + esc(rotuloRota(item.rota)) + "</strong>";
           if (item.dispositivo) texto += " · " + esc(item.dispositivo);
+          if (item.cidade) {
+            texto += " · " + esc(item.cidade) + (item.uf ? " (" + esc(item.uf) + ")" : "");
+          }
         } else if (item.tipo === "evento") {
           texto =
             "Evento <strong>" + esc(NOMES_EVENTOS[item.evento] || item.evento) + "</strong>" +
@@ -949,6 +1203,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           coleta: $("#cfg-coleta").checked,
+          geo: $("#cfg-geo").checked,
           retencaoDias: Number($("#cfg-retencao").value)
         })
       });

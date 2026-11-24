@@ -79,9 +79,7 @@
 
   enviar({
     t: "pageview",
-    ref: document.referrer || "",
-    vp: window.innerWidth + "x" + window.innerHeight,
-    idioma: navigator.language || ""
+    ref: document.referrer || ""
   });
 
   medirRolagem();

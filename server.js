@@ -9,6 +9,8 @@ const rotas = require("./lib/rotas");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+/* Em produção o padrão é escutar em todas as interfaces; localmente use HOST=127.0.0.1. */
+const HOST = process.env.HOST || "0.0.0.0";
 const TOKEN = process.env.FOOTBALL_TOKEN;
 const BASE = "https://api.football-data.org/v4";
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -17,6 +19,9 @@ const infoPainel = painel.iniciar();
 
 /* Competições exibidas no site (códigos da football-data.org). */
 const LIGAS = ["BSA", "PL", "PD", "SA", "BL1", "FL1", "CL", "DED", "PPL", "ELC"];
+const LIGAS_VALIDAS = new Set(LIGAS);
+
+const limitarApi = rotas.limitarApi;
 
 /* Total de rodadas de cada competição (temporada regular). */
 const TOTAL_RODADAS = {
@@ -115,7 +120,7 @@ async function jogosDoPeriodo(date, dateTo) {
       `/matches?competitions=${LIGAS.join(",")}&dateFrom=${date}&dateTo=${dateTo}`,
       CACHE_TTL_JOGOS
     );
-    if (Array.isArray(data?.matches)) return data.matches;
+    if (Array.isArray(data?.matches) && data.matches.length) return data.matches;
   } catch (err) {
     if (err instanceof UpstreamError && err.status === 429) throw err;
     console.warn("Chamada agrupada falhou, usando chamadas por liga:", err.message);
@@ -187,15 +192,16 @@ function rodadaRelevante(jogos) {
 }
 
 function rodadaDoCache(code) {
+  let melhor = null;
   for (const [chave, item] of cache) {
     if (!chave.startsWith("/matches?competitions=")) continue;
     if (Date.now() - item.at >= CACHE_TTL_JOGOS) continue;
     const jogos = item.data?.matches;
     if (!Array.isArray(jogos)) continue;
     const alvo = rodadaRelevante(jogos.filter((m) => m.competition?.code === code));
-    if (alvo) return alvo;
+    if (alvo && (!melhor || item.at > melhor.at)) melhor = { at: item.at, rodada: alvo };
   }
-  return null;
+  return melhor ? melhor.rodada : null;
 }
 
 async function rodadaDaJanela(code) {
@@ -275,13 +281,22 @@ app.use(
       } else if (/\.(css|js)$/i.test(filePath)) {
         res.setHeader("Cache-Control", "public, max-age=3600");
       }
+
+      if (/admin\.html?$/i.test(filePath)) {
+        res.setHeader("X-Robots-Tag", "noindex, nofollow");
+      }
     }
   })
 );
 
 /* ---------- API ---------- */
 
-app.get("/api/jogos", async (req, res) => {
+app.get("/api/health", (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.json({ ok: true, uptime: Math.round(process.uptime()), cache: cache.size });
+});
+
+app.get("/api/jogos", limitarApi, async (req, res) => {
   try {
     const date = RE_DATA.test(req.query.date || "") ? req.query.date : dataHoje();
     let dateTo = RE_DATA.test(req.query.dateTo || "") ? req.query.dateTo : date;
@@ -301,9 +316,9 @@ app.get("/api/jogos", async (req, res) => {
   }
 });
 
-app.get("/api/tabela/:code", async (req, res) => {
+app.get("/api/tabela/:code", limitarApi, async (req, res) => {
   const code = req.params.code;
-  if (!RE_CODIGO.test(code)) {
+  if (!RE_CODIGO.test(code) || !LIGAS_VALIDAS.has(code)) {
     return res.status(400).json({ error: "Código de liga inválido.", code: 400 });
   }
   try {
@@ -315,7 +330,7 @@ app.get("/api/tabela/:code", async (req, res) => {
   }
 });
 
-app.get("/api/jogo/:id", async (req, res) => {
+app.get("/api/jogo/:id", limitarApi, async (req, res) => {
   const id = req.params.id;
   if (!RE_ID.test(id)) {
     return res.status(400).json({ error: "Identificador de jogo inválido.", code: 400 });
@@ -329,9 +344,9 @@ app.get("/api/jogo/:id", async (req, res) => {
   }
 });
 
-app.get("/api/rodada/:code", async (req, res) => {
+app.get("/api/rodada/:code", limitarApi, async (req, res) => {
   const code = req.params.code;
-  if (!RE_CODIGO.test(code)) {
+  if (!RE_CODIGO.test(code) || !LIGAS_VALIDAS.has(code)) {
     return res.status(400).json({ error: "Código de liga inválido.", code: 400 });
   }
 
@@ -369,7 +384,7 @@ app.use("/api", (req, res) => {
   res.status(404).json({ error: "Rota não encontrada." });
 });
 
-app.listen(PORT, () => {
+const servidor = app.listen(PORT, HOST, () => {
   console.log(`XTscores no ar em http://localhost:${PORT}`);
   console.log(`Painel administrativo: http://localhost:${PORT}/admin`);
 
@@ -405,3 +420,24 @@ app.listen(PORT, () => {
   limpar();
   setInterval(limpar, 6 * 3600 * 1000).unref();
 });
+
+/* Encerra com segurança: para de aceitar conexões e grava a fila de estatísticas. */
+let encerrando = false;
+function encerrar(sinal) {
+  if (encerrando) return;
+  encerrando = true;
+  console.log(`[servidor] ${sinal} recebido, encerrando...`);
+
+  const prazo = setTimeout(() => process.exit(0), 8000);
+  prazo.unref();
+
+  servidor.close(() => {
+    analytics
+      .aguardarGravacao()
+      .catch(() => {})
+      .finally(() => process.exit(0));
+  });
+}
+
+process.on("SIGTERM", () => encerrar("SIGTERM"));
+process.on("SIGINT", () => encerrar("SIGINT"));

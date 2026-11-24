@@ -28,8 +28,13 @@ Acesse http://localhost:3000.
 |---|---|---|
 | `FOOTBALL_TOKEN` | sim | Token da football-data.org |
 | `PORT` | não | Porta do servidor (padrão `3000`) |
+| `HOST` | não | Interface de escuta (padrão `0.0.0.0`; use `127.0.0.1` para testar localmente) |
 | `ADMIN_SENHA` | não | Define a senha do painel. Quando presente, tem prioridade sobre a senha gravada e desativa a troca pelo painel |
 | `DADOS_DIR` | não | Pasta onde as estatísticas e a senha são gravadas (padrão `./dados`) |
+| `TRUST_PROXY` | não | Confia em `X-Real-IP`/`X-Forwarded-For`. Por padrão só confia quando a conexão chega de um proxy local (loopback/rede privada); use `1` ou `0` para forçar |
+| `API_MAX_MIN` | não | Limite de requisições por minuto e por IP nas rotas públicas da API (padrão `120`; `0` desativa) |
+| `GEO_MAX_DIA` | não | Limite diário **total** de consultas de cidade/estado (padrão `3000`; `0` desativa) |
+| `GEO_MAX_DIA_IP` | não | Limite diário de consultas de cidade/estado **por visitante** (padrão `40`) |
 
 ## Painel administrativo
 
@@ -65,16 +70,24 @@ O painel tem quatro seções:
 
 - **Visão geral:** visualizações, visitantes, sessões, tempo médio, rejeição e rolagem, com comparação
   ao período anterior; gráfico por dia (ou por hora em "Hoje"), horários de pico, páginas, origens,
-  dispositivos, navegadores, sistemas, ligas e jogos mais abertos.
-- **Tempo real:** pessoas navegando nos últimos 5 minutos, páginas abertas e feed de eventos (10 s).
-- **Conteúdo:** tabelas completas de páginas, origens, eventos, ligas e países.
-- **Configurações:** ligar/desligar a coleta, retenção (30 a 730 dias), exportação em CSV, troca de
-  senha e exclusão de dados.
+  **cidades e estados** (estimados pelo IP, sem gravar o endereço), dispositivos, navegadores,
+  sistemas, ligas e jogos mais abertos. O cartão **Localização do tráfego** traz visitas localizadas,
+  cobertura, cidades/estados distintos, um mapa de calor por UF e o ranking de cidades e estados.
+- **Tempo real:** pessoas navegando nos últimos 5 minutos, páginas abertas, cidades e estados de quem
+  está no site e feed de eventos (10 s), com a cidade/UF estimada de cada visita.
+- **Conteúdo:** tabelas completas de páginas, origens, eventos, ligas, países, cidades e estados.
+- **Configurações:** ligar/desligar a coleta e a estimativa de localização, retenção (30 a 730 dias),
+  exportação em CSV, troca de senha e exclusão de dados.
 
 ### Como a coleta funciona
 
 - Sem cookies de análise: o visitante é identificado por um hash diário de IP + navegador + segredo.
   O IP original **não é armazenado**.
+- **Cidade e estado:** estimados no momento da visita por uma consulta ao `ipwho.is`, com timeout de
+  1,2 s, cache em memória por hash do IP e limites diários: `GEO_MAX_DIA_IP` por visitante (padrão 40)
+  e `GEO_MAX_DIA` no total do site (padrão 3000). A UF vem de `region_code`. Se
+  `X-Real-IP`/`X-Forwarded-For` já vierem com cidade/estado (CDN), a consulta é dispensada. Pode ser
+  desligado em Configurações ou com `GEO_MAX_DIA=0`.
 - Respeita `DNT`, `Global Privacy Control` e navegadores automatizados.
 - Os registros ficam em `dados/analytics/YYYY-MM-DD.ndjson`, com retenção configurável.
 - O GA4 continua separado, carregado apenas após o consentimento de cookies.
@@ -91,6 +104,7 @@ O painel tem quatro seções:
 | `GET /api/rodada/:code?rodada=N` | Jogos de uma rodada + metadados (`rodadaAtual`, `totalRodadas`) |
 | `GET /api/tabela/:code` | Classificação da liga |
 | `GET /api/jogo/:id` | Detalhes de um jogo (gols, status) |
+| `GET /api/health` | Verificação simples de saúde do processo (uptime e tamanho do cache) |
 | `POST /api/track` | Coleta anônima de página vista, saída e eventos (público) |
 | `GET /admin` | Painel administrativo (exige senha) |
 | `POST /api/admin/entrar` · `POST /api/admin/sair` | Login e logout do painel |
@@ -98,7 +112,7 @@ O painel tem quatro seções:
 | `GET /api/admin/tempo-real` | Visitantes ativos e últimos eventos |
 | `GET`/`POST /api/admin/config` | Ler e salvar coleta e retenção |
 | `POST /api/admin/senha` | Trocar a senha do painel |
-| `GET /api/admin/exportar?tipo=resumo\|paginas\|eventos\|bruto&dias=N` | Exportar CSV |
+| `GET /api/admin/exportar?tipo=resumo\|paginas\|eventos\|localidades\|bruto&dias=N` | Exportar CSV |
 | `POST /api/admin/limpar` | Apagar dados antigos ou todos (confirmação `APAGAR`) |
 
 ## Estrutura
@@ -107,6 +121,7 @@ O painel tem quatro seções:
 server.js              # Express: proxy com cache (5 min), validação e segurança
 lib/
   analytics.js         # Coleta, agregação, retenção e exportação em CSV
+  geo.js               # Cidade/estado via ipwho.is, sem gravar o IP
   painel.js            # Senha (scrypt), sessão HMAC e configurações
   rotas.js             # Rotas /api/track e /api/admin/*
 scripts/
@@ -133,7 +148,10 @@ dados/                 # Estatísticas e senha do painel (fora do Git)
 - **Fuso horário:** todas as datas exibidas e filtradas usam `America/Sao_Paulo`.
 - **Cookies:** o Google Analytics só é carregado após o consentimento do usuário. As estatísticas do
   painel são próprias, anônimas e não usam cookies.
-- **Cache HTTP:** arquivos estáticos ficam 7 dias em cache; o HTML é sempre revalidado.
+- **Cache HTTP:** imagens ficam 30 dias em cache, CSS/JS 1 hora e o HTML é sempre revalidado.
+- **Limites:** as rotas públicas da API aceitam `API_MAX_MIN` requisições por minuto por IP e só
+  respondem ligas conhecidas. Headers de proxy (`X-Real-IP`/`X-Forwarded-For`) só são usados quando a
+  conexão vem de um proxy local, salvo se `TRUST_PROXY` for definido.
 
 ## Deploy
 

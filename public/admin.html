@@ -11,8 +11,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="/theme.js?v=1.5.0"></script>
-  <link rel="stylesheet" href="/admin.css?v=1.5.0">
+  <script src="/theme.js?v=1.7.1"></script>
+  <link rel="stylesheet" href="/admin.css?v=1.7.1">
 </head>
 <body>
   <!-- Login -->
@@ -114,6 +114,29 @@
           </article>
         </div>
 
+        <article class="cartao" id="cartao-localidades">
+          <header class="cartao-topo">
+            <h2>Localização do tráfego</h2>
+            <span class="selo-dica">Cidade e estado estimados pelo IP · o endereço não é armazenado</span>
+          </header>
+          <div id="geo-resumo" class="mini-kpis geo-resumo"></div>
+          <div id="mapa-estados" class="mapa-estados" role="list" aria-label="Visitas por estado"></div>
+          <p class="dica geo-nota" id="geo-nota"></p>
+        </article>
+
+        <div class="grid grid-2">
+          <article class="cartao">
+            <h2>Cidades</h2>
+            <p class="dica">Estimado pelo IP no momento da visita; o endereço não é armazenado.</p>
+            <div id="tabela-cidades"></div>
+          </article>
+          <article class="cartao">
+            <h2>Estados</h2>
+            <p class="dica">Mesma estimativa de localização, com a sigla da unidade federativa.</p>
+            <div id="tabela-estados"></div>
+          </article>
+        </div>
+
         <div class="grid grid-2">
           <article class="cartao">
             <h2>Páginas mais vistas</h2>
@@ -158,7 +181,8 @@
 
         <p class="nota-lgpd">
           Estatísticas anônimas e agregadas, sem cookies de análise. O IP não é armazenado: usamos apenas um
-          identificador embaralhado que muda todos os dias. Veja a
+          identificador embaralhado que muda todos os dias. Cidade e estado são estimados no momento da visita
+          por uma consulta ao serviço ipwho.is, sem guardar o IP. Veja a
           <a href="/politica.html" target="_blank" rel="noopener">Política de Dados</a>.
         </p>
       </section>
@@ -179,10 +203,16 @@
             <div id="rt-paginas"></div>
           </article>
           <article class="cartao">
-            <h2>Últimos eventos</h2>
-            <div id="rt-eventos" class="feed"></div>
+            <h2>Cidades e estados agora</h2>
+            <p class="dica">De onde vêm as pessoas navegando neste momento.</p>
+            <div id="rt-cidades"></div>
           </article>
         </div>
+
+        <article class="cartao">
+          <h2>Últimos eventos</h2>
+          <div id="rt-eventos" class="feed"></div>
+        </article>
       </section>
 
       <!-- Conteúdo -->
@@ -214,6 +244,18 @@
             <div id="conteudo-paises"></div>
           </article>
         </div>
+
+        <div class="grid grid-2">
+          <article class="cartao">
+            <h2>Cidades</h2>
+            <p class="dica">Estimado pelo IP no momento da visita; o endereço não é armazenado.</p>
+            <div id="conteudo-cidades"></div>
+          </article>
+          <article class="cartao">
+            <h2>Estados</h2>
+            <div id="conteudo-estados"></div>
+          </article>
+        </div>
       </section>
 
       <!-- Configurações -->
@@ -232,6 +274,15 @@
             </span>
             <input type="checkbox" id="cfg-coleta" class="switch">
           </label>
+
+          <label class="linha-switch">
+            <span>
+              <strong>Estimar cidade e estado</strong>
+              <small>Consulta o IP no serviço ipwho.is no momento da visita. O IP não é gravado.</small>
+            </span>
+            <input type="checkbox" id="cfg-geo" class="switch">
+          </label>
+          <p class="dica" id="geo-info"></p>
 
           <label class="campo-linha">
             <span>
@@ -271,6 +322,7 @@
               <button type="button" class="btn" data-export="resumo">Resumo diário</button>
               <button type="button" class="btn" data-export="paginas">Páginas</button>
               <button type="button" class="btn" data-export="eventos">Eventos</button>
+              <button type="button" class="btn" data-export="localidades">Cidades</button>
               <button type="button" class="btn" data-export="bruto">Registros brutos</button>
             </div>
           </div>
@@ -330,6 +382,6 @@
 
   <div id="aviso" class="aviso" role="status" aria-live="polite"></div>
 
-  <script src="/admin.js?v=1.5.0" defer></script>
+  <script src="/admin.js?v=1.7.1" defer></script>
 </body>
 </html>
