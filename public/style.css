@@ -1823,10 +1823,17 @@ footer {
 
 /* ---------- simulador do Brasileirão ---------- */
 
-/* Acesso rápido ao simulador no mobile (o menu principal fica oculto). */
-.cta-simulador {
-  display: none;
+/*
+ * Atalho do simulador: brilho minimalista na identidade do site (verde da
+ * marca), com halo suave e uma varredura de luz discreta.
+ */
+.btn-simulador {
+  position: relative;
+  display: inline-flex;
   align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  isolation: isolate;
   padding: 8px 13px;
   border-radius: var(--raio-pill);
   border: 1px solid var(--aovivo-borda);
@@ -1834,10 +1841,79 @@ footer {
   color: var(--verde);
   font-size: 12.5px;
   font-weight: 700;
+  letter-spacing: 0.01em;
   text-decoration: none;
   white-space: nowrap;
+  box-shadow:
+    0 0 0 1px rgba(61, 220, 132, 0.14),
+    0 8px 20px -15px rgba(61, 220, 132, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  animation: halo-simulador 5.5s ease-in-out infinite;
+  transition: color 0.2s ease, border-color 0.25s ease, box-shadow 0.3s ease, transform 0.2s ease;
 }
-.cta-simulador:hover { color: var(--verde); border-color: var(--foco-borda); }
+
+/* varredura de luz, bem discreta */
+.btn-simulador::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    115deg,
+    transparent 34%,
+    rgba(255, 255, 255, 0.22) 48%,
+    rgba(61, 220, 132, 0.18) 52%,
+    transparent 64%
+  );
+  transform: translateX(-130%);
+  animation: varredura-simulador 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.btn-simulador:hover,
+.site-nav a.btn-simulador:hover {
+  color: var(--verde);
+  border-color: var(--foco-borda);
+  background: transparent;
+  box-shadow:
+    0 0 0 1px rgba(61, 220, 132, 0.4),
+    0 12px 28px -14px rgba(61, 220, 132, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+/* dentro do menu o atalho também se comporta como botão */
+.site-nav a.btn-simulador {
+  padding: 8px 13px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--verde);
+}
+
+@keyframes halo-simulador {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(61, 220, 132, 0.12),
+      0 8px 20px -16px rgba(61, 220, 132, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(61, 220, 132, 0.36),
+      0 10px 26px -14px rgba(61, 220, 132, 0.75),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+}
+
+@keyframes varredura-simulador {
+  0%, 62% { transform: translateX(-130%); opacity: 0; }
+  70% { opacity: 1; }
+  88% { transform: translateX(130%); opacity: 0; }
+  100% { transform: translateX(130%); opacity: 0; }
+}
+
+/* Atalho do simulador no mobile (lá o menu principal fica oculto). */
+.cta-simulador { display: none; }
 
 .sim-main { padding-bottom: 72px; }
 
