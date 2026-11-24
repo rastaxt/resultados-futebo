@@ -249,7 +249,7 @@ function card(m) {
   const texto = encodeURIComponent("Olá! gostaria de conhecer a plataforma");
   const palpite = encerrado || cancelado
     ? ""
-    : `<a class="palpite" href="https://wa.me/${WHATSAPP}?text=${texto}" target="_blank" rel="noopener">Palpite $</a>`;
+    : `<a class="palpite" href="https://wa.me/${WHATSAPP}?text=${texto}" target="_blank" rel="noopener">Palpite</a>`;
   const perna = m.perna ? ` <span class="perna">${m.perna}</span>` : "";
 
   return `
