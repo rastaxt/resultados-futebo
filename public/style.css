@@ -1758,17 +1758,17 @@ footer {
   }
 
   .whatsapp-flutuante {
-    width: 60px;
-    height: 60px;
+    width: 75px;
+    height: 75px;
     right: 14px;
     bottom: 14px;
   }
-  .whatsapp-flutuante img { width: 34px; height: 34px; }
+  .whatsapp-flutuante img { width: 43px; height: 43px; }
 
   .atendente-flutuante {
     right: 14px;
-    bottom: 62px;
-    width: 76px;
+    bottom: 77px;
+    width: 95px;
   }
 
   .consent {
@@ -1784,7 +1784,7 @@ footer {
   .palpite { padding: 7px 10px; font-size: 10px; }
   .time { max-width: 58px; }
   .tema-btn { width: 36px; height: 36px; }
-  .atendente-flutuante { width: 66px; bottom: 58px; }
+  .atendente-flutuante { width: 82px; bottom: 77px; }
 }
 
 /* ---------- botão de tema nas páginas internas ---------- */
