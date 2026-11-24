@@ -49,6 +49,18 @@ npm run senha                 # gera uma senha aleatória
 npm run senha -- "minha-senha"  # define uma senha específica
 ```
 
+### Definir a senha sem terminal (hPanel, cPanel, FTP)
+
+Se você não tem acesso ao terminal do servidor:
+
+1. Crie o arquivo `dados/senha.txt` (na pasta do app, ao lado de `server.js`) contendo a nova
+   senha em uma única linha, com 8 a 200 caracteres.
+2. Reinicie o aplicativo Node no painel da hospedagem.
+3. O servidor aplica a senha e **apaga o `dados/senha.txt` automaticamente**.
+
+A variável `ADMIN_SENHA` continua tendo prioridade. Para conferir se ela está ativa no servidor,
+acesse `/api/admin/sessao`: `senhaAmbiente: true` significa que a senha vem do ambiente.
+
 O painel tem quatro seções:
 
 - **Visão geral:** visualizações, visitantes, sessões, tempo médio, rejeição e rolagem, com comparação
