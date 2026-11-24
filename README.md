@@ -33,8 +33,8 @@ Acesse http://localhost:3000.
 
 ## Painel administrativo
 
-O painel fica em **`/admin`** e mostra estatísticas próprias do site, sem cookies e sem guardar o IP.
-A primeira execução cria a senha automaticamente e imprime no console:
+O painel fica em **https://xtscores.com.br/admin**. Mostra estatísticas próprias do site, sem cookies e
+sem guardar o IP. A primeira execução cria a senha automaticamente e imprime no console:
 
 ```
 === PAINEL XTSCORES - SENHA INICIAL ===

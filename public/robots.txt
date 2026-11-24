@@ -4,4 +4,4 @@ Disallow: /api/
 Disallow: /admin
 Disallow: /admin.html
 
-Sitemap: https://xtscores.com/sitemap.xml
+Sitemap: https://xtscores.com.br/sitemap.xml
