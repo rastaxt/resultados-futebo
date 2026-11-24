@@ -1290,7 +1290,7 @@ footer {
   pointer-events: none;
 }
 
-.whatsapp-flutuante img {
+.whatsapp-flutuante > img {
   position: relative;
   z-index: 1;
   width: 40px;
@@ -1311,16 +1311,19 @@ footer {
   animation-duration: 3.5s;
 }
 
-/* atendente acima do botão do WhatsApp (decorativa, com o mesmo brilho verde) */
+/*
+ * Atendente: agora faz parte do botão do WhatsApp (mesmo link, mesmo clique).
+ * Fica ancorada no topo do botão e acompanha o hover/escala dele.
+ */
 .atendente-flutuante {
-  position: fixed;
-  right: 22px;
-  bottom: 74px;
-  z-index: 49;
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - 14px);
+  transform: translateX(-50%);
+  z-index: 0;
   width: 92px;
   display: grid;
   place-items: center;
-  pointer-events: none;
   user-select: none;
   isolation: isolate;
 }
@@ -1763,11 +1766,10 @@ footer {
     right: 14px;
     bottom: 14px;
   }
-  .whatsapp-flutuante img { width: 43px; height: 43px; }
+  .whatsapp-flutuante > img { width: 43px; height: 43px; }
 
   .atendente-flutuante {
-    right: 14px;
-    bottom: 77px;
+    bottom: calc(100% - 12px);
     width: 95px;
   }
 
@@ -1784,7 +1786,7 @@ footer {
   .palpite { padding: 7px 10px; font-size: 10px; }
   .time { max-width: 58px; }
   .tema-btn { width: 36px; height: 36px; }
-  .atendente-flutuante { width: 82px; bottom: 77px; }
+  .atendente-flutuante { width: 82px; }
 }
 
 /* ---------- botão de tema nas páginas internas ---------- */
