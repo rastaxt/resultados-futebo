@@ -278,24 +278,86 @@ main {
   padding: 0 20px;
 }
 
-header {
+/* ---------- cabeçalho ---------- */
+
+.site-header {
+  padding-top: 0;
+}
+
+.site-barra {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding-top: 14px;
-  text-align: center;
+  gap: 16px;
+  padding: 14px 0 12px;
+  border-bottom: 1px solid var(--linha);
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  text-decoration: none;
 }
 
 .logo {
-  width: 172px;
+  width: 122px;
   height: auto;
-  margin-bottom: 4px;
-  filter: drop-shadow(0 10px 30px rgba(61, 220, 132, 0.22));
+  filter: drop-shadow(0 10px 26px rgba(61, 220, 132, 0.18));
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.site-nav a {
+  padding: 8px 13px;
+  border-radius: var(--raio-pill);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--texto-suave);
+  text-decoration: none;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.site-nav a:hover {
+  color: var(--texto-forte);
+  background: var(--hover);
+}
+
+.site-acoes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.cta-grupo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 17px;
+  border-radius: var(--raio-pill);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(180deg, #22a054, #14763d);
+  box-shadow: 0 10px 24px -14px rgba(34, 160, 84, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+.cta-grupo:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  color: #fff;
 }
 
 .banner-whatsapp {
   display: block;
-  margin: 8px auto 10px;
+  margin: 14px auto 0;
   width: 100%;
   max-width: 760px;
   border-radius: var(--raio);
@@ -317,15 +379,98 @@ header {
 }
 .banner-mobile { display: none; }
 
+/* ---------- hero ---------- */
+
+.hero {
+  position: relative;
+  margin: 26px 0 18px;
+  padding: 38px 26px 32px;
+  overflow: hidden;
+  text-align: center;
+  border: 1px solid var(--linha);
+  border-radius: 26px;
+  background:
+    radial-gradient(720px 280px at 50% -45%, var(--fundo-brilho-1), transparent 72%),
+    linear-gradient(165deg, var(--card-a), var(--card-b));
+  box-shadow: var(--sombra), var(--realce);
+}
+
+.hero-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 6px 14px;
+  border: 1px solid var(--aovivo-borda);
+  border-radius: var(--raio-pill);
+  background: var(--aovivo-bg);
+  color: var(--verde);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hero-ponto {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--verde);
+  box-shadow: 0 0 10px var(--selo-sombra);
+  animation: pulso 1.6s infinite;
+}
+
+.hero-titulo {
+  margin: 0 auto;
+  max-width: 760px;
+  font-family: Outfit, system-ui, sans-serif;
+  font-size: clamp(1.9rem, 4.2vw, 2.9rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.045em;
+  background: linear-gradient(180deg, var(--titulo-a), var(--titulo-b));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-texto {
+  margin: 14px auto 0;
+  max-width: 620px;
+  color: var(--texto-suave);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.hero-ligas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.hero-ligas li {
+  padding: 6px 12px;
+  border: 1px solid var(--linha-forte);
+  border-radius: var(--raio-pill);
+  background: var(--zebra);
+  color: var(--texto-suave);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
 /* ---------- barra de filtros ---------- */
 
 .topo {
   display: grid;
-  grid-template-columns: minmax(0, 320px) 1fr minmax(0, 320px);
+  grid-template-columns: minmax(0, 300px) 1fr minmax(0, 250px);
   align-items: center;
   gap: 14px;
-  margin: 10px 0 20px;
-  padding: 10px 14px;
+  margin: 20px 0 18px;
+  padding: 10px 16px;
   border: 1px solid transparent;
   border-radius: 20px;
   background:
@@ -706,6 +851,11 @@ button.liga:hover { opacity: 0.85; }
   gap: 12px;
 }
 
+#jogos,
+#classificacao {
+  scroll-margin-top: 104px;
+}
+
 .jogo { position: relative; }
 
 .match {
@@ -1080,22 +1230,46 @@ dialog h3 {
 /* ---------- rodapé ---------- */
 
 footer {
-  margin-top: 60px;
-  padding: 38px 20px 46px;
-  text-align: center;
+  margin-top: 64px;
+  padding: 40px 20px 46px;
   border-top: 1px solid var(--linha);
   color: var(--texto-suave);
   font-size: 13px;
   background: linear-gradient(180deg, transparent, var(--rodape-brilho));
 }
+
+.rodape-conteudo {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  text-align: center;
+}
+
 .logo-rodape {
-  width: 122px;
+  width: 112px;
   height: auto;
-  margin-bottom: 14px;
   opacity: 0.85;
   filter: drop-shadow(0 8px 24px rgba(61, 220, 132, 0.18));
 }
-footer p { margin: 0 0 12px; }
+
+.rodape-frase {
+  margin: 0;
+  max-width: 440px;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.rodape-copy {
+  margin: 4px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
 .links-rodape {
   display: flex;
   justify-content: center;
@@ -1312,16 +1486,16 @@ footer p { margin: 0 0 12px; }
  * fundo claro, no lugar do bloco preto que destoava da página.
  */
 :root[data-theme="light"] .logo {
-  width: 176px;
+  width: 134px;
   padding: 0;
-  margin-bottom: 6px;
+  margin-bottom: 0;
   border-radius: 0;
   background: none;
   box-shadow: none;
   filter: invert(1) contrast(1.35) brightness(0.92) drop-shadow(0 10px 24px rgba(12, 38, 64, 0.2));
 }
 :root[data-theme="light"] .logo-rodape {
-  width: 138px;
+  width: 124px;
   padding: 0;
   border-radius: 0;
   background: none;
@@ -1362,14 +1536,32 @@ footer p { margin: 0 0 12px; }
     padding-right: 14px;
   }
 
+  .site-barra {
+    gap: 10px;
+    padding: 12px 0 10px;
+  }
+  .site-nav { display: none; }
+  .site-acoes { margin-left: auto; }
+  .cta-grupo { display: none; }
+
   .logo {
-    width: 128px;
-    margin-bottom: 6px;
+    width: 104px;
   }
   :root[data-theme="light"] .logo {
-    width: 134px;
+    width: 112px;
     padding: 0;
   }
+
+  .hero {
+    margin: 18px 0 16px;
+    padding: 26px 18px 24px;
+    border-radius: 20px;
+  }
+  .hero-titulo { font-size: 1.65rem; }
+  .hero-quebra { display: none; }
+  .hero-texto { font-size: 0.95rem; }
+  .hero-ligas { gap: 6px; margin-top: 18px; }
+  .hero-ligas li { padding: 5px 10px; font-size: 10.5px; }
 
   .banner-desktop { display: none; }
   .banner-mobile {
@@ -1382,7 +1574,7 @@ footer p { margin: 0 0 12px; }
   }
 
   .atualizado {
-    margin: 28px 0 18px;
+    margin: 16px 0 16px;
   }
 
   .filtros {

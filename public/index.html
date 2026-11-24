@@ -27,8 +27,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://crests.football-data.org" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&display=swap" rel="stylesheet" />
-  <script src="/theme.js?v=1.8.3"></script>
-  <link rel="stylesheet" href="/style.css?v=1.8.3" />
+  <script src="/theme.js?v=1.9.0"></script>
+  <link rel="stylesheet" href="/style.css?v=1.9.0" />
 
   <script type="application/ld+json">
     {
@@ -47,8 +47,32 @@
     <p>Carregando</p>
   </div>
 
-  <header>
-    <img class="logo" src="/logo.png" alt="XTscores" width="170" height="114" />
+  <header class="site-header">
+    <div class="site-barra">
+      <a class="marca" href="/" aria-label="XTscores — página inicial">
+        <img class="logo" src="/logo.png" alt="XTscores" width="170" height="114" />
+      </a>
+
+      <nav class="site-nav" aria-label="Navegação principal">
+        <a href="#jogos">Jogos</a>
+        <a href="#classificacao">Classificação</a>
+        <a href="/contato.html">Contato</a>
+      </nav>
+
+      <div class="site-acoes">
+        <a class="cta-grupo" href="https://chat.whatsapp.com/EqBiTi6ALtKCvvlu4Bmzxw?s=cl&p=a&mlu=4&ilr=4" target="_blank" rel="noopener">Grupo do Green</a>
+        <button id="tema" class="tema-btn" type="button" aria-label="Mudar para tema claro" title="Mudar para tema claro" aria-pressed="false">
+          <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+          </svg>
+          <svg class="icone-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
     <a href="https://chat.whatsapp.com/EqBiTi6ALtKCvvlu4Bmzxw?s=cl&p=a&mlu=4&ilr=4" target="_blank" rel="noopener" class="banner-whatsapp">
       <img class="banner-desktop" src="/banner-green.jpg" alt="Venha fazer parte do grupo do Green" width="728" height="90" loading="lazy" />
       <img class="banner-mobile" src="/banner-green-mobile.jpg" alt="Venha fazer parte do grupo do Green" width="700" height="470" loading="lazy" />
@@ -56,6 +80,22 @@
   </header>
 
   <main>
+    <section class="hero">
+      <p class="hero-selo"><span class="hero-ponto" aria-hidden="true"></span>Placares em tempo real</p>
+      <h1 class="hero-titulo">Jogos de hoje, resultados<br class="hero-quebra" /> ao vivo e classificação</h1>
+      <p class="hero-texto">Acompanhe o Brasileirão, a Premier League, a Champions League, a Libertadores e mais — cada rodada com placares atualizados e tabelas completas.</p>
+      <ul class="hero-ligas" aria-label="Campeonatos cobertos">
+        <li>Brasileirão</li>
+        <li>Premier League</li>
+        <li>La Liga</li>
+        <li>Serie A</li>
+        <li>Bundesliga</li>
+        <li>Ligue 1</li>
+        <li>Champions League</li>
+        <li>Libertadores</li>
+      </ul>
+    </section>
+
     <div class="topo">
       <div class="lado-esquerdo">
         <div class="filtros">
@@ -101,15 +141,6 @@
       <div class="lado-direito">
         <div id="liga-destaque" class="liga-destaque escondido"></div>
         <div class="acoes-topo">
-          <button id="tema" class="tema-btn" type="button" aria-label="Mudar para tema claro" title="Mudar para tema claro" aria-pressed="false">
-            <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
-            </svg>
-            <svg class="icone-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-              <circle cx="12" cy="12" r="4" />
-              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-            </svg>
-          </button>
           <button id="aovivo" type="button" aria-pressed="false">
             <span class="bolinha" aria-hidden="true"></span>AO VIVO
           </button>
@@ -119,22 +150,26 @@
 
     <p id="atualizado" class="atualizado escondido"></p>
 
-    <section aria-label="Jogos">
+    <section id="jogos" class="secao-jogos" aria-label="Jogos">
       <div id="matches" class="list"></div>
     </section>
 
-    <section aria-label="Classificação">
+    <section id="classificacao" class="secao-classificacao" aria-label="Classificação">
       <h2 id="titulo-tabela" class="escondido">Classificação</h2>
       <div id="table"></div>
     </section>
   </main>
 
   <footer>
-    <img class="logo-rodape" src="/logo.png" alt="XTscores" width="120" height="80" loading="lazy" />
-    <p>Todos os direitos reservados a XTscores</p>
-    <div class="links-rodape">
-      <a href="/politica.html">Política de Dados e Cookies</a>
-      <a href="/contato.html">Contato</a>
+    <div class="rodape-conteudo">
+      <img class="logo-rodape" src="/logo.png" alt="XTscores" width="120" height="80" loading="lazy" />
+      <p class="rodape-frase">Placares, jogos e classificação dos principais campeonatos de futebol.</p>
+      <nav class="links-rodape" aria-label="Links do rodapé">
+        <a href="/politica.html">Política de Dados e Cookies</a>
+        <a href="/contato.html">Contato</a>
+        <a href="https://wa.me/5516974061534" target="_blank" rel="noopener">WhatsApp</a>
+      </nav>
+      <p class="rodape-copy">Todos os direitos reservados a XTscores</p>
     </div>
   </footer>
 
@@ -144,15 +179,15 @@
   </dialog>
 
   <div class="atendente-flutuante" aria-hidden="true">
-    <img src="/atendente.webp?v=1.8.3" alt="" width="360" height="489" loading="lazy" />
+    <img src="/atendente.webp?v=1.9.0" alt="" width="360" height="489" loading="lazy" />
   </div>
 
   <a href="https://wa.me/5516974061534" target="_blank" rel="noopener" class="whatsapp-flutuante" title="Falar no WhatsApp" aria-label="Falar no WhatsApp">
     <img src="/whatsapp.png" alt="" width="68" height="68" loading="lazy" />
   </a>
 
-  <script src="/consent.js?v=1.8.3" defer></script>
-  <script src="/analytics.js?v=1.8.3" defer></script>
-  <script src="/app.js?v=1.8.3" defer></script>
+  <script src="/consent.js?v=1.9.0" defer></script>
+  <script src="/analytics.js?v=1.9.0" defer></script>
+  <script src="/app.js?v=1.9.0" defer></script>
 </body>
 </html>
