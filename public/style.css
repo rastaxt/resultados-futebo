@@ -1501,14 +1501,10 @@ footer {
     display: block;
     width: 100%;
     max-width: 100%;
-    /*
-     * 40% mais baixo que a proporção original. O recorte é puxado para o
-     * topo (30%) para o logo XTscores e o título ficarem inteiros, sem
-     * cortar a arte no meio.
-     */
-    height: 142px;
+    height: 100%;
+    /* mostra o topo da arte: logo, título e a linha de destaque inteiros */
     object-fit: cover;
-    object-position: 50% 24%;
+    object-position: 50% 29%;
     border-radius: 0;
   }
   .banner-whatsapp {
@@ -1516,6 +1512,12 @@ footer {
     width: 100%;
     max-width: 100%;
     border: 0;
+    /*
+     * Faixa de 40% menos altura que a arte original (700x470 -> 700x280).
+     * Como a proporção é fixa, o corte fica sempre no mesmo ponto da arte
+     * em qualquer largura de tela, sem cortar o texto.
+     */
+    aspect-ratio: 700 / 280;
   }
 
   .atualizado {
