@@ -1342,6 +1342,10 @@ footer p { margin: 0 0 12px; }
     max-width: 100%;
   }
 
+  .atualizado {
+    margin: 28px 0 18px;
+  }
+
   .topo {
     /* relativo (e não estático) para a barra de filtros ficar acima dos cards:
        o backdrop-filter já cria contexto de empilhamento, então sem z-index
