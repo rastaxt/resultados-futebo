@@ -7,7 +7,8 @@
     secao: "visao",
     dados: null,
     timerVisao: null,
-    timerRt: null
+    timerRt: null,
+    timerLogin: null
   };
 
   var NOMES_LIGAS = {
@@ -161,7 +162,10 @@
       throw new Error("Sessão expirada. Entre novamente.");
     }
     if (!resposta.ok) {
-      throw new Error((dados && dados.error) || "Não foi possível concluir a operação.");
+      var erro = new Error((dados && dados.error) || "Não foi possível concluir a operação.");
+      erro.status = resposta.status;
+      erro.dados = dados;
+      throw erro;
     }
     return dados || {};
   }
@@ -200,6 +204,8 @@
   function pararTimers() {
     clearInterval(estado.timerVisao);
     clearInterval(estado.timerRt);
+    clearInterval(estado.timerLogin);
+    estado.timerLogin = null;
   }
 
   function iniciarTimers() {
@@ -838,10 +844,38 @@
 
   /* ---------- eventos da interface ---------- */
 
+  function contarBloqueio(segundos) {
+    clearInterval(estado.timerLogin);
+    var botao = $("#login-btn");
+    var restante = Math.max(1, Math.round(segundos));
+
+    function pintar() {
+      if (restante <= 0) {
+        clearInterval(estado.timerLogin);
+        estado.timerLogin = null;
+        botao.disabled = false;
+        botao.textContent = "Entrar";
+        $("#login-erro").textContent = "";
+        return;
+      }
+
+      var minutos = Math.floor(restante / 60);
+      var resto = restante % 60;
+      botao.disabled = true;
+      botao.textContent =
+        "Aguarde " + (minutos ? minutos + ":" + ("0" + resto).slice(-2) : resto + "s");
+      restante--;
+    }
+
+    pintar();
+    estado.timerLogin = setInterval(pintar, 1000);
+  }
+
   $("#form-login").addEventListener("submit", async function (evento) {
     evento.preventDefault();
     var botao = $("#login-btn");
     var senha = $("#login-senha").value;
+    var bloqueado = false;
     $("#login-erro").textContent = "";
     botao.disabled = true;
     botao.textContent = "Entrando…";
@@ -856,10 +890,17 @@
       mostrarApp();
     } catch (erro) {
       $("#login-erro").textContent = erro.message;
-      $("#login-senha").select();
+      if (erro.status === 429 && erro.dados && erro.dados.retryAfter) {
+        bloqueado = true;
+        contarBloqueio(Number(erro.dados.retryAfter));
+      } else {
+        $("#login-senha").select();
+      }
     } finally {
-      botao.disabled = false;
-      botao.textContent = "Entrar";
+      if (!bloqueado) {
+        botao.disabled = false;
+        botao.textContent = "Entrar";
+      }
     }
   });
 
