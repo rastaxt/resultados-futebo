@@ -608,6 +608,7 @@ select {
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
   box-shadow: var(--realce);
   transition: box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
 }
@@ -1524,16 +1525,6 @@ footer {
     margin: 16px 0 16px;
   }
 
-  .filtros {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .filtro-data { flex: 1 1 100%; justify-content: center; }
-  .filtro-data #data { flex: 1 1 auto; width: auto; max-width: 200px; }
-
-  .filtros .picker { flex: 1 1 100%; }
-
   .topo {
     /* relativo (e não estático) para a barra de filtros ficar acima dos cards:
        o backdrop-filter já cria contexto de empilhamento, então sem z-index
@@ -1541,46 +1532,98 @@ footer {
     position: relative;
     top: auto;
     z-index: 30;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     padding: 14px;
     margin: 14px 0 18px;
-    border-radius: 18px;
+    border-radius: 22px;
   }
 
-  .lado-esquerdo,
-  .titulo-area,
-  .lado-direito {
+  .lado-esquerdo {
+    grid-column: 1 / -1;
     width: 100%;
-    justify-content: center;
+    justify-content: stretch;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--linha);
+  }
+
+  /* campos lado a lado com rótulos curtos, estilo formulário moderno */
+  .filtros {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
+    gap: 10px;
+    width: 100%;
+  }
+
+  .filtro-data,
+  .filtros .picker {
+    display: block;
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .filtro-data::before,
+  .filtros .picker::before {
+    content: "Data";
+    display: block;
+    margin: 0 0 6px 4px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--texto-suave);
+  }
+  .filtros .picker::before { content: "Liga"; }
+
+  .filtro-data #data {
+    width: 100%;
+    max-width: none;
+    padding: 11px 9px;
+    border-radius: 14px;
+  }
+
+  .filtros .picker .picker-btn {
+    padding: 11px 32px 11px 12px;
+    border-radius: 14px;
+  }
+
+  .titulo-area {
+    grid-column: 2;
+    justify-self: center;
+    width: auto;
+    min-width: 0;
+  }
+
+  .lado-direito {
+    grid-column: 3;
+    justify-self: end;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: auto;
   }
 
   .titulo-com-rodada {
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    width: 100%;
+    gap: 8px;
+    width: auto;
   }
-  .titulo-com-rodada h2 { font-size: 1.35rem; }
+  .titulo-com-rodada h2 { font-size: 1.3rem; }
   .titulo-com-rodada #round {
     position: static;
     left: auto;
-    width: 100%;
-    max-width: 240px;
+    width: 220px;
+    max-width: 100%;
     min-width: 0;
     font-size: 14px;
     padding: 10px 34px 10px 14px;
     border-radius: 12px;
   }
 
-  .lado-direito {
-    flex-direction: row;
-    justify-content: center;
-    gap: 14px;
-    flex-wrap: wrap;
-  }
   .liga-destaque img {
     width: 30px;
     height: 30px;
