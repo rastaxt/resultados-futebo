@@ -118,6 +118,7 @@
       var rotulo = "WhatsApp";
       if (link.classList.contains("palpite")) rotulo = "Palpite";
       else if (link.classList.contains("whatsapp-flutuante")) rotulo = "Botao flutuante";
+      else if (link.classList.contains("atendente-flutuante")) rotulo = "Assistente";
       else if (link.classList.contains("banner-whatsapp")) rotulo = "Banner do grupo";
 
       window.XTtrack("whatsapp", rotulo, rotaAtual());
