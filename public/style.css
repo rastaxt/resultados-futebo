@@ -379,89 +379,6 @@ main {
 }
 .banner-mobile { display: none; }
 
-/* ---------- hero ---------- */
-
-.hero {
-  position: relative;
-  margin: 26px 0 18px;
-  padding: 38px 26px 32px;
-  overflow: hidden;
-  text-align: center;
-  border: 1px solid var(--linha);
-  border-radius: 26px;
-  background:
-    radial-gradient(720px 280px at 50% -45%, var(--fundo-brilho-1), transparent 72%),
-    linear-gradient(165deg, var(--card-a), var(--card-b));
-  box-shadow: var(--sombra), var(--realce);
-}
-
-.hero-selo {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 16px;
-  padding: 6px 14px;
-  border: 1px solid var(--aovivo-borda);
-  border-radius: var(--raio-pill);
-  background: var(--aovivo-bg);
-  color: var(--verde);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.hero-ponto {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--verde);
-  box-shadow: 0 0 10px var(--selo-sombra);
-  animation: pulso 1.6s infinite;
-}
-
-.hero-titulo {
-  margin: 0 auto;
-  max-width: 760px;
-  font-family: Outfit, system-ui, sans-serif;
-  font-size: clamp(1.9rem, 4.2vw, 2.9rem);
-  font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: -0.045em;
-  background: linear-gradient(180deg, var(--titulo-a), var(--titulo-b));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.hero-texto {
-  margin: 14px auto 0;
-  max-width: 620px;
-  color: var(--texto-suave);
-  font-size: 1rem;
-  line-height: 1.6;
-}
-
-.hero-ligas {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 7px;
-  margin: 22px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.hero-ligas li {
-  padding: 6px 12px;
-  border: 1px solid var(--linha-forte);
-  border-radius: var(--raio-pill);
-  background: var(--zebra);
-  color: var(--texto-suave);
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
-
 /* ---------- barra de filtros ---------- */
 
 .topo {
@@ -1552,17 +1469,6 @@ footer {
     padding: 0;
   }
 
-  .hero {
-    margin: 18px 0 16px;
-    padding: 26px 18px 24px;
-    border-radius: 20px;
-  }
-  .hero-titulo { font-size: 1.65rem; }
-  .hero-quebra { display: none; }
-  .hero-texto { font-size: 0.95rem; }
-  .hero-ligas { gap: 6px; margin-top: 18px; }
-  .hero-ligas li { padding: 5px 10px; font-size: 10.5px; }
-
   .banner-desktop { display: none; }
   .banner-mobile {
     display: block;
@@ -1598,7 +1504,7 @@ footer {
     align-items: center;
     gap: 14px;
     padding: 14px;
-    margin: 6px 0 18px;
+    margin: 14px 0 18px;
     border-radius: 18px;
   }
 
