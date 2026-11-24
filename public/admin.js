@@ -185,6 +185,20 @@
     return valor || "—";
   }
 
+  /* Nomes dos botões que levam ao WhatsApp (valores gravados pelo site). */
+  var ROTULOS_WHATSAPP = {
+    "Botao flutuante": "Botão flutuante",
+    Assistente: "Imagem da assistente",
+    "Banner do grupo": "Banner do grupo",
+    "Botao do grupo": "Botão do grupo",
+    Palpite: "Palpite do jogo",
+    WhatsApp: "Outros links"
+  };
+
+  function rotuloWhatsapp(valor) {
+    return ROTULOS_WHATSAPP[valor] || valor || "Outros links";
+  }
+
   /* ---------- comunicação ---------- */
 
   async function api(caminho, opcoes) {
@@ -335,6 +349,7 @@
       renderLigas(dados);
       renderJogos(dados);
       renderEngajamento(dados);
+      renderWhatsapp(dados);
       renderConteudo(dados);
 
       var p = dados.periodo;
@@ -344,6 +359,21 @@
         minute: "2-digit"
       });
       $("#subtitulo").textContent = periodo + " · atualizado às " + hora;
+
+      /* Avisa quando o período pedido vai além do histórico que a retenção mantém. */
+      var nota = $("#nota-periodo");
+      if (dados.primeiroDia && p.inicio < dados.primeiroDia) {
+        nota.hidden = false;
+        nota.textContent =
+          "Histórico disponível a partir de " +
+          dataCurta(dados.primeiroDia) +
+          ". Dias anteriores não têm registros (retenção atual: " +
+          numero(dados.retencaoDias || 0) +
+          " dias).";
+      } else {
+        nota.hidden = true;
+        nota.textContent = "";
+      }
     } catch (erro) {
       if (!silencioso) aviso(erro.message, true);
     } finally {
@@ -668,7 +698,7 @@
     );
   }
 
-  function tabelaValores(itens, rotulo, limite) {
+  function tabelaValores(itens, rotulo, limite, tituloColuna) {
     if (!itens.length) return vazio("Sem registros no período.");
     var maximo = itens[0].total || 1;
     var linhas = itens
@@ -685,7 +715,7 @@
 
     return (
       '<table class="adm-tabela"><thead><tr><th scope="col">#</th><th scope="col">Item</th>' +
-      '<th scope="col" class="num">Ações</th>' +
+      '<th scope="col" class="num">' + esc(tituloColuna || "Ações") + "</th>" +
       '<th scope="col"><span class="rotulo-oculto">Participação</span></th></tr></thead>' +
       "<tbody>" + linhas + "</tbody></table>"
     );
@@ -998,6 +1028,42 @@
         );
       })
       .join("");
+  }
+
+  function renderWhatsapp(dados) {
+    var sessoes = (dados.kpis && dados.kpis.sessoes && dados.kpis.sessoes.valor) || 0;
+    var itens = itensEvento(dados, "whatsapp");
+    var total = totalEvento(dados, "whatsapp");
+    var lider = itens[0] ? rotuloWhatsapp(itens[0].valor) : "—";
+    var porSessao = sessoes ? (total / sessoes).toFixed(2).replace(".", ",") : "0";
+
+    $("#whatsapp-resumo").innerHTML = [
+      [
+        "Total de cliques",
+        numero(total),
+        sessoes ? pct((total / sessoes) * 100) + " das sessões" : "sem sessões no período"
+      ],
+      ["Cliques por sessão", porSessao, numero(sessoes) + " sessões"],
+      [
+        "Botão mais clicado",
+        lider,
+        itens[0]
+          ? numero(itens[0].total) + (itens[0].total === 1 ? " clique" : " cliques")
+          : "sem cliques ainda"
+      ],
+      ["Botões com cliques", numero(itens.length), "no período selecionado"]
+    ]
+      .map(function (item) {
+        return (
+          '<div class="mini"><span>' + esc(item[0]) + "</span><strong>" + esc(item[1]) +
+          "</strong><small>" + esc(item[2]) + "</small></div>"
+        );
+      })
+      .join("");
+
+    $("#tabela-whatsapp").innerHTML = itens.length
+      ? tabelaValores(itens, rotuloWhatsapp, 10, "Cliques")
+      : vazio("Nenhum clique no WhatsApp registrado no período.");
   }
 
   function renderConteudo(dados) {

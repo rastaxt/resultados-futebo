@@ -92,7 +92,27 @@
     enviar({ t: "saida", dur: Date.now() - inicio, rol: rolagem });
   }
 
+  /*
+   * Ao voltar para a página (aba em segundo plano, bfcache ou retorno do app
+   * do WhatsApp no celular) a coleta é rearmada. Sem isso, tudo o que o
+   * visitante fazia depois da primeira saída deixava de ser registrado.
+   */
+  function reativar() {
+    if (!saidaEnviada) return;
+    saidaEnviada = false;
+    inicio = Date.now();
+    rolagem = 0;
+    medirRolagem();
+  }
+
   window.addEventListener("pagehide", finalizar);
+  window.addEventListener("pageshow", function (evento) {
+    if (evento && evento.persisted) reativar();
+  });
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") finalizar();
+    else reativar();
+  });
 
   /* API usada pelo restante do site. */
   window.XTtrack = function (nome, valor, contexto) {
@@ -120,6 +140,7 @@
       else if (link.classList.contains("whatsapp-flutuante")) rotulo = "Botao flutuante";
       else if (link.classList.contains("atendente-flutuante")) rotulo = "Assistente";
       else if (link.classList.contains("banner-whatsapp")) rotulo = "Banner do grupo";
+      else if (link.classList.contains("cta-grupo")) rotulo = "Botao do grupo";
 
       window.XTtrack("whatsapp", rotulo, rotaAtual());
     },
