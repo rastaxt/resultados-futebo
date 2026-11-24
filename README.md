@@ -55,8 +55,8 @@ Se você não tem acesso ao terminal do servidor:
 
 1. Crie o arquivo `dados/senha.txt` (na pasta do app, ao lado de `server.js`) contendo a nova
    senha em uma única linha, com 8 a 200 caracteres.
-2. Reinicie o aplicativo Node no painel da hospedagem.
-3. O servidor aplica a senha e **apaga o `dados/senha.txt` automaticamente**.
+2. Tente entrar no painel com essa senha. O servidor aplica a senha na hora e **apaga o
+   `dados/senha.txt` automaticamente** — não é preciso reiniciar.
 
 A variável `ADMIN_SENHA` continua tendo prioridade. Para conferir se ela está ativa no servidor,
 acesse `/api/admin/sessao`: `senhaAmbiente: true` significa que a senha vem do ambiente.
