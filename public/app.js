@@ -17,6 +17,7 @@ const tituloTabela = document.querySelector("#titulo-tabela");
 const loading = document.querySelector("#loading");
 const botaoAoVivo = document.querySelector("#aovivo");
 const ligaDestaque = document.querySelector("#liga-destaque");
+const topoEl = document.querySelector(".topo");
 const atualizadoEl = document.querySelector("#atualizado");
 const dataInput = document.querySelector("#data");
 
@@ -785,9 +786,11 @@ function atualizarDestaque() {
   if (!opt || !opt.value || !emblemas[opt.value]) {
     ligaDestaque.classList.add("escondido");
     ligaDestaque.innerHTML = "";
+    topoEl?.classList.remove("tem-liga");
     return;
   }
   ligaDestaque.classList.remove("escondido");
+  topoEl?.classList.add("tem-liga");
   ligaDestaque.innerHTML = `<img src="${escHtml(emblemas[opt.value])}" alt="" loading="lazy"><span>${escHtml(opt.textContent)}</span>`;
 }
 

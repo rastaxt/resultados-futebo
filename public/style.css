@@ -1554,7 +1554,7 @@ footer {
   /* campos lado a lado com rótulos curtos, estilo formulário moderno */
   .filtros {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.28fr);
     gap: 10px;
     width: 100%;
   }
@@ -1583,13 +1583,23 @@ footer {
   .filtro-data #data {
     width: 100%;
     max-width: none;
+    min-height: 44px;
     padding: 11px 9px;
     border-radius: 14px;
   }
 
   .filtros .picker .picker-btn {
+    min-height: 44px;
     padding: 11px 32px 11px 12px;
     border-radius: 14px;
+  }
+
+  /* o nome da liga não quebra em duas linhas: encurta com reticências */
+  .filtros .picker .picker-btn span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* título centralizado na linha e AO VIVO ancorado à direita, com folga */
@@ -1649,11 +1659,34 @@ footer {
     border-radius: 12px;
   }
 
+  /* Liga escolhida: o destaque (escudo + nome) ganha linha própria acima do
+     título, para não encostar no seletor de rodada nem vazar do card. */
+  .topo.tem-liga .linha-titulo {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+  .topo.tem-liga .lado-direito {
+    position: static;
+    transform: none;
+    order: -1;
+    width: 100%;
+    max-width: 100%;
+    justify-content: center;
+  }
+  .topo.tem-liga .titulo-area { max-width: 100%; }
+
+  .liga-destaque {
+    gap: 8px;
+    min-width: 0;
+    max-width: 100%;
+  }
   .liga-destaque img {
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
+    flex: none;
   }
   .liga-destaque span {
+    max-width: 62vw;
     font-size: 0.95rem;
   }
 

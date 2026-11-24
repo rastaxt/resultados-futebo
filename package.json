@@ -1,6 +1,6 @@
 {
   "name": "resultados-futebol",
-  "version": "1.9.14",
+  "version": "1.9.16",
   "description": "XTscores — placares ao vivo, jogos do dia e classificação dos principais campeonatos de futebol.",
   "main": "server.js",
   "private": true,
