@@ -404,7 +404,7 @@ main {
 
 .topo {
   display: grid;
-  grid-template-columns: minmax(0, 300px) 1fr minmax(0, 300px);
+  grid-template-columns: minmax(0, 336px) 1fr minmax(0, 300px);
   align-items: center;
   gap: 14px;
   margin: 20px 0 18px;
@@ -644,7 +644,7 @@ select {
 }
 
 .filtro-data #data {
-  width: 136px;
+  width: 126px;
   min-width: 0;
   font-size: 13px;
   font-variant-numeric: tabular-nums;
@@ -671,12 +671,25 @@ select {
   width: 100%;
 }
 
+/* o nome da liga nunca quebra: no máximo encolhe com reticências */
+.picker-btn span,
+.picker-item span {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
 .picker-btn {
   position: relative;
   cursor: pointer;
-  padding: 9px 34px 9px 12px;
+  padding: 9px 32px 9px 12px;
   border-radius: 12px;
   background: var(--campo-bg);
+  font-size: 13px;
+  letter-spacing: -0.01em;
 }
 .picker-btn::after {
   content: "";
@@ -1592,14 +1605,6 @@ footer {
     min-height: 44px;
     padding: 11px 32px 11px 12px;
     border-radius: 14px;
-  }
-
-  /* o nome da liga não quebra em duas linhas: encurta com reticências */
-  .filtros .picker .picker-btn span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   /* título centralizado na linha e AO VIVO ancorado à direita, com folga */
