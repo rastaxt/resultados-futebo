@@ -1499,15 +1499,23 @@ footer {
   .banner-desktop { display: none; }
   .banner-mobile {
     display: block;
-    /* 40% mais baixo que a proporção original: corta topo/base da arte */
+    width: 100%;
+    max-width: 100%;
+    /*
+     * 40% mais baixo que a proporção original. O recorte é puxado para o
+     * topo (30%) para o logo XTscores e o título ficarem inteiros, sem
+     * cortar a arte no meio.
+     */
     height: 142px;
     object-fit: cover;
-    object-position: center;
-    border-radius: 16px;
+    object-position: 50% 24%;
+    border-radius: 0;
   }
   .banner-whatsapp {
     margin: 8px auto 12px;
+    width: 100%;
     max-width: 100%;
+    border: 0;
   }
 
   .atualizado {
