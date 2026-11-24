@@ -19,6 +19,7 @@
     BL1: "Bundesliga",
     FL1: "Ligue 1",
     CL: "Champions League",
+    CLI: "Libertadores",
     DED: "Eredivisie",
     PPL: "Primeira Liga",
     ELC: "Championship"

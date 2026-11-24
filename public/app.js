@@ -27,6 +27,7 @@ const emblemas = {
   BL1: "https://crests.football-data.org/BL1.png",
   FL1: "https://crests.football-data.org/FL1.png",
   CL: "/champions.png",
+  CLI: "https://crests.football-data.org/CLI.svg",
   DED: "/Eredivisie.png",
   PPL: "https://crests.football-data.org/PPL.png",
   ELC: "https://crests.football-data.org/ELC.png"
@@ -40,6 +41,7 @@ const nomesLiga = {
   BL1: "Bundesliga",
   FL1: "Ligue 1",
   CL: "Champions League",
+  CLI: "Libertadores",
   DED: "Eredivisie",
   PPL: "Primeira Liga",
   ELC: "Championship"
@@ -58,6 +60,9 @@ const statusLabel = {
   CANCELLED: "Cancelado",
   AWARDED: "Decidido"
 };
+
+/* Competições de mata-mata: sem tabela de classificação nem rodadas numeradas. */
+const SEM_TABELA = new Set(["CLI"]);
 
 const mataMata = new Set([
   "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL",
@@ -513,7 +518,16 @@ async function carregarJogos({ forcar = false, silencioso = false } = {}) {
     const data = await buscar(url);
     if (chaveAtual() !== chave && leagueSelect.value === code) return;
 
-    preencherRodadas(data.rodadaAtual || 1, data.rodada || 1, data.totalRodadas || 38);
+    if (data.totalRodadas) {
+      roundSelect.classList.remove("escondido");
+      preencherRodadas(data.rodadaAtual || 1, data.rodada || 1, data.totalRodadas);
+    } else {
+      /* Copa/mata-mata: lista corrida de jogos, sem seletor de rodada. */
+      roundSelect.classList.add("escondido");
+      roundSelect.innerHTML = "";
+      tituloJogos.textContent = nomesLiga[code] || "Jogos";
+      document.title = `XTscores | ${nomesLiga[code] || "Jogos"}`;
+    }
     const novos = marcarPernas(data.matches || []);
     const registro = { dados: novos, salvoEm: Date.now() };
     cacheJogos[chave] = registro;
@@ -536,6 +550,12 @@ async function carregarTabela({ forcar = false } = {}) {
   if (!code) {
     tituloTabela.classList.add("escondido");
     tableEl.innerHTML = `<p class="vazio">Escolha uma liga para ver a tabela.</p>`;
+    return;
+  }
+
+  if (SEM_TABELA.has(code)) {
+    tituloTabela.classList.add("escondido");
+    tableEl.innerHTML = `<p class="vazio">Classificação não disponível para esta competição.</p>`;
     return;
   }
 

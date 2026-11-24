@@ -18,7 +18,7 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 const infoPainel = painel.iniciar();
 
 /* Competições exibidas no site (códigos da football-data.org). */
-const LIGAS = ["BSA", "PL", "PD", "SA", "BL1", "FL1", "CL", "DED", "PPL", "ELC"];
+const LIGAS = ["BSA", "PL", "PD", "SA", "BL1", "FL1", "CL", "CLI", "DED", "PPL", "ELC"];
 const LIGAS_VALIDAS = new Set(LIGAS);
 
 const limitarApi = rotas.limitarApi;
@@ -111,6 +111,14 @@ async function api(pathname, ttl = CACHE_TTL) {
 }
 
 /*
+ * A API devolve jogos de mata-mata ainda sem os dois times definidos (ex.:
+ * final da Libertadores); sem os times o card fica vazio, então descartamos.
+ */
+function semTimesIndefinidos(matches) {
+  return (matches || []).filter((m) => m?.homeTeam?.name && m?.awayTeam?.name);
+}
+
+/*
  * Busca jogos de todas as ligas. Tenta uma única chamada (economiza cota da
  * API) e cai para chamadas por competição se o plano/endpoint não aceitar.
  */
@@ -120,7 +128,7 @@ async function jogosDoPeriodo(date, dateTo) {
       `/matches?competitions=${LIGAS.join(",")}&dateFrom=${date}&dateTo=${dateTo}`,
       CACHE_TTL_JOGOS
     );
-    if (Array.isArray(data?.matches) && data.matches.length) return data.matches;
+    if (Array.isArray(data?.matches) && data.matches.length) return semTimesIndefinidos(data.matches);
   } catch (err) {
     if (err instanceof UpstreamError && err.status === 429) throw err;
     console.warn("Chamada agrupada falhou, usando chamadas por liga:", err.message);
@@ -150,7 +158,7 @@ async function jogosDoPeriodo(date, dateTo) {
     const motivo = grupos.find((g) => g.status === "rejected")?.reason;
     throw motivo || new UpstreamError(502, "sem dados");
   }
-  return matches;
+  return semTimesIndefinidos(matches);
 }
 
 function dataSP(deslocamentoDias = 0) {
@@ -351,6 +359,25 @@ app.get("/api/rodada/:code", limitarApi, async (req, res) => {
   }
 
   try {
+    /*
+     * Competições de mata-mata (ex.: Libertadores) não têm tabela de rodadas
+     * na API: mostramos os jogos da janela atual em vez de buscar matchday.
+     */
+    if (!TOTAL_RODADAS[code]) {
+      const janela = await api(
+        `/competitions/${code}/matches?dateFrom=${dataSP(-1)}&dateTo=${dataSP(21)}`,
+        CACHE_TTL_JOGOS
+      );
+      res.setHeader("Cache-Control", "no-store");
+      return res.json({
+        ...janela,
+        matches: semTimesIndefinidos(janela?.matches),
+        rodadaAtual: null,
+        rodada: null,
+        totalRodadas: 0
+      });
+    }
+
     const totalRodadas = TOTAL_RODADAS[code] || 38;
     const tabela = await api(`/competitions/${code}/standings`);
     const atual = tabela?.season?.currentMatchday || 1;
