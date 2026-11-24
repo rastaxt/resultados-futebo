@@ -251,9 +251,10 @@ function card(m) {
     ? ""
     : `<a class="palpite" href="https://wa.me/${WHATSAPP}?text=${texto}" target="_blank" rel="noopener">Palpite</a>`;
   const perna = m.perna ? ` <span class="perna">${m.perna}</span>` : "";
+  const estadoJogo = vivo ? " vivo" : "";
 
   return `
-    <div class="jogo">
+    <div class="jogo${estadoJogo}">
       <div class="match">
         <button type="button" class="match-abrir" data-id="${escHtml(m.id)}"
           aria-label="Ver detalhes de ${escHtml(casa)} contra ${escHtml(fora)}"></button>
@@ -492,7 +493,7 @@ async function carregarTabela({ forcar = false } = {}) {
 
   if (!code) {
     tituloTabela.classList.add("escondido");
-    tableEl.innerHTML = "<p>Escolha uma liga para ver a tabela.</p>";
+    tableEl.innerHTML = `<p class="vazio">Escolha uma liga para ver a tabela.</p>`;
     return;
   }
 
