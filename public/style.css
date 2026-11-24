@@ -1162,6 +1162,57 @@ footer p { margin: 0 0 12px; }
   animation-duration: 3.5s;
 }
 
+/* atendente acima do botão do WhatsApp (decorativa, com o mesmo brilho verde) */
+.atendente-flutuante {
+  position: fixed;
+  right: 22px;
+  bottom: 74px;
+  z-index: 49;
+  width: 92px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  user-select: none;
+  isolation: isolate;
+}
+
+/* halo verde difuso atrás da figura */
+.atendente-flutuante::before {
+  content: "";
+  position: absolute;
+  inset: 6% -18% -8%;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(63, 241, 147, 0.5),
+    rgba(22, 169, 87, 0.24) 55%,
+    rgba(8, 113, 58, 0) 78%
+  );
+  filter: blur(12px);
+  animation: respirar 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.atendente-flutuante img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: auto;
+  -webkit-user-drag: none;
+  animation: brilho-atendente 3.2s ease-in-out infinite;
+}
+
+@keyframes brilho-atendente {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px rgba(63, 241, 147, 0.35)) drop-shadow(0 10px 16px rgba(0, 0, 0, 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(63, 241, 147, 0.85)) drop-shadow(0 10px 16px rgba(0, 0, 0, 0.35));
+  }
+}
+
 /* ---------- consentimento ---------- */
 
 .consent {
@@ -1292,7 +1343,11 @@ footer p { margin: 0 0 12px; }
   }
 
   .topo {
-    position: static;
+    /* relativo (e não estático) para a barra de filtros ficar acima dos cards:
+       o backdrop-filter já cria contexto de empilhamento, então sem z-index
+       a lista de ligas aberta aparecia atrás dos jogos. */
+    position: relative;
+    z-index: 30;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1416,6 +1471,12 @@ footer p { margin: 0 0 12px; }
   }
   .whatsapp-flutuante img { width: 34px; height: 34px; }
 
+  .atendente-flutuante {
+    right: 14px;
+    bottom: 62px;
+    width: 76px;
+  }
+
   .consent {
     flex-direction: column;
     align-items: stretch;
@@ -1429,6 +1490,7 @@ footer p { margin: 0 0 12px; }
   .palpite { padding: 7px 10px; font-size: 10px; }
   .time { max-width: 58px; }
   .tema-btn { width: 36px; height: 36px; }
+  .atendente-flutuante { width: 66px; bottom: 58px; }
 }
 
 /* ---------- botão de tema nas páginas internas ---------- */
@@ -1459,6 +1521,8 @@ footer p { margin: 0 0 12px; }
   }
   html { scroll-behavior: auto; }
   .whatsapp-flutuante::before,
-  .whatsapp-flutuante::after { animation: none; }
+  .whatsapp-flutuante::after,
+  .atendente-flutuante::before,
+  .atendente-flutuante img { animation: none; }
   .jogo.vivo .match::after { animation: none; opacity: 0.7; }
 }
