@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>XTscores | Simulador do Brasileirão</title>
+  <meta name="description" content="Mude os placares dos próximos jogos do Brasileirão e veja na hora como fica a tabela de classificação." />
+  <meta name="robots" content="index,follow" />
+  <meta name="theme-color" content="#0f1419" />
+  <link rel="canonical" href="https://xtscores.com.br/simulador" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="XTscores" />
+  <meta property="og:url" content="https://xtscores.com.br/simulador" />
+  <meta property="og:title" content="XTscores | Simulador do Brasileirão" />
+  <meta property="og:description" content="Simule os próximos resultados do Brasileirão e acompanhe a classificação projetada." />
+  <meta property="og:image" content="https://xtscores.com.br/logo.png" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://crests.football-data.org" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&display=swap" rel="stylesheet" />
+  <script src="/theme.js?v=1.10.1"></script>
+  <link rel="stylesheet" href="/style.css?v=1.10.1" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-barra">
+      <div class="site-barra-conteudo">
+        <a class="marca" href="/" aria-label="XTscores — página inicial">
+          <img class="logo" src="/logo.png" alt="XTscores" width="170" height="114" />
+        </a>
+
+        <nav class="site-nav" aria-label="Navegação principal">
+          <a href="/">Jogos</a>
+          <a href="/#classificacao">Classificação</a>
+          <a href="/simulador" aria-current="page">Simulador</a>
+          <a href="/contato.html">Contato</a>
+        </nav>
+
+        <div class="site-acoes">
+          <a class="cta-simulador" href="/simulador" aria-current="page">Simulador</a>
+          <button id="tema" class="tema-btn" type="button" aria-label="Mudar para tema claro" title="Mudar para tema claro" aria-pressed="false">
+            <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+            </svg>
+            <svg class="icone-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="sim-main">
+    <section class="sim-hero">
+      <h1>Simulador do Brasileirão</h1>
+      <p>Mude os placares dos jogos que ainda não aconteceram e veja na hora como fica a tabela de classificação. Os resultados oficiais não são alterados.</p>
+    </section>
+
+    <div class="sim-barra">
+      <div class="sim-controles">
+        <label class="sim-campo">
+          <span>Temporada</span>
+          <select id="temporada" autocomplete="off"></select>
+        </label>
+
+        <label class="sim-campo">
+          <span>Rodada</span>
+          <select id="rodada" autocomplete="off"></select>
+        </label>
+
+        <div class="sim-nav-rodada">
+          <button id="rodada-anterior" type="button" aria-label="Rodada anterior" title="Rodada anterior">&#8592;</button>
+          <button id="rodada-proxima" type="button" aria-label="Próxima rodada" title="Próxima rodada">&#8594;</button>
+        </div>
+      </div>
+
+      <div class="sim-controles sim-controles-direita">
+        <div class="sim-visao" role="group" aria-label="O que mostrar">
+          <button type="button" data-visao="ambos" class="ativo">Ambos</button>
+          <button type="button" data-visao="jogos">Jogos</button>
+          <button type="button" data-visao="tabela">Tabela</button>
+        </div>
+
+        <div class="sim-botoes">
+          <button id="limpar" type="button" class="sim-btn" disabled>Limpar simulações</button>
+          <button id="restaurar" type="button" class="sim-btn sim-btn-forte" disabled>Restaurar oficial</button>
+        </div>
+      </div>
+    </div>
+
+    <p id="sim-aviso" class="sim-aviso escondido" role="status" aria-live="polite"></p>
+
+    <div class="sim-grid" id="sim-grid">
+      <section class="sim-painel" id="painel-jogos" aria-labelledby="titulo-jogos">
+        <header class="sim-painel-topo">
+          <h2 id="titulo-jogos">Jogos da rodada</h2>
+          <span class="sim-selo" id="selo-rodada"></span>
+        </header>
+        <div id="jogos" class="sim-jogos">
+          <p class="vazio">Carregando os jogos…</p>
+        </div>
+      </section>
+
+      <section class="sim-painel" id="painel-tabela" aria-labelledby="titulo-tabela">
+        <header class="sim-painel-topo">
+          <h2 id="titulo-tabela">Classificação projetada</h2>
+          <span class="sim-selo" id="selo-tabela"></span>
+        </header>
+
+        <p class="legenda">
+          <span><i class="champions"></i>Libertadores</span>
+          <span><i class="europa"></i>Pré-Libertadores</span>
+          <span><i class="conference"></i>Sul-Americana</span>
+          <span><i class="rebaixamento"></i>Rebaixamento</span>
+        </p>
+
+        <div id="tabela">
+          <p class="vazio">Carregando a classificação…</p>
+        </div>
+      </section>
+    </div>
+
+    <p class="sim-nota">
+      Os placares digitados ficam apenas no seu navegador: nada é enviado ao servidor e os dados oficiais
+      continuam intactos. Critérios de desempate: pontos, vitórias, saldo de gols e gols pró.
+    </p>
+  </main>
+
+  <script src="/analytics.js?v=1.10.1" defer></script>
+  <script src="/simulador.js?v=1.10.1" defer></script>
+</body>
+</html>

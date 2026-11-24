@@ -407,6 +407,77 @@ app.get("/api/rodada/:code", limitarApi, async (req, res) => {
   }
 });
 
+/*
+ * Simulador do Brasileirão: devolve a temporada inteira num formato enxuto.
+ * Duas chamadas à API (temporadas e jogos), ambas com cache do servidor.
+ */
+const SIMULADOR_LIGA = "BSA";
+
+app.get("/api/simulador", limitarApi, async (req, res) => {
+  try {
+    const competicao = await api(`/competitions/${SIMULADOR_LIGA}`);
+    const temporadas = (competicao?.seasons || [])
+      .filter((s) => s?.startDate)
+      .map((s) => ({
+        temporada: Number(String(s.startDate).slice(0, 4)),
+        atual: Boolean(s.current),
+        rodadaAtual: s.currentMatchday || null
+      }))
+      .filter((s) => Number.isInteger(s.temporada))
+      .sort((a, b) => b.temporada - a.temporada);
+
+    const pedida = Number(req.query.season);
+    const escolhida =
+      temporadas.find((t) => t.temporada === pedida) ||
+      temporadas.find((t) => t.atual) ||
+      temporadas[0];
+
+    if (!escolhida) throw new UpstreamError(502, "sem temporadas disponíveis");
+
+    const dados = await api(
+      `/competitions/${SIMULADOR_LIGA}/matches?season=${escolhida.temporada}`
+    );
+
+    const partidas = semTimesIndefinidos(dados?.matches).map((m) => ({
+      id: m.id,
+      rodada: m.matchday || null,
+      em: m.utcDate,
+      status: m.status,
+      casa: {
+        id: m.homeTeam.id,
+        nome: m.homeTeam.shortName || m.homeTeam.name,
+        escudo: m.homeTeam.crest || ""
+      },
+      fora: {
+        id: m.awayTeam.id,
+        nome: m.awayTeam.shortName || m.awayTeam.name,
+        escudo: m.awayTeam.crest || ""
+      },
+      placar:
+        m.score?.fullTime?.home == null
+          ? null
+          : [m.score.fullTime.home, m.score.fullTime.away]
+    }));
+
+    res.setHeader("Cache-Control", "public, max-age=120");
+    res.json({
+      competicao: competicao?.name || "Campeonato Brasileiro Série A",
+      temporadas,
+      temporada: escolhida.temporada,
+      rodadaAtual: escolhida.rodadaAtual,
+      partidas
+    });
+  } catch (err) {
+    responderErro(res, err);
+  }
+});
+
+/* Página do simulador (URL limpa, sem extensão). */
+app.get("/simulador", (req, res) => {
+  res.setHeader("Cache-Control", "no-cache");
+  res.sendFile(path.join(PUBLIC_DIR, "simulador.html"));
+});
+
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "Rota não encontrada." });
 });
