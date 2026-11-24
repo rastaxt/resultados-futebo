@@ -404,7 +404,7 @@ main {
 
 .topo {
   display: grid;
-  grid-template-columns: minmax(0, 300px) 1fr minmax(0, 250px);
+  grid-template-columns: minmax(0, 300px) 1fr minmax(0, 300px);
   align-items: center;
   gap: 14px;
   margin: 20px 0 18px;
@@ -855,11 +855,12 @@ button.liga:hover { opacity: 0.85; }
 }
 
 .quando {
-  font-size: 11.5px;
-  line-height: 1.4;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
   text-align: center;
-  color: var(--texto-suave);
-  letter-spacing: 0.02em;
+  color: var(--texto);
+  letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -889,10 +890,10 @@ button.liga:hover { opacity: 0.85; }
 .status-placar {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 9px;
+  gap: 4px;
+  padding: 1px 7px;
   border-radius: var(--raio-pill);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1.5;
@@ -1498,6 +1499,10 @@ footer {
   .banner-desktop { display: none; }
   .banner-mobile {
     display: block;
+    /* 40% mais baixo que a proporção original: corta topo/base da arte */
+    height: 142px;
+    object-fit: cover;
+    object-position: center;
     border-radius: 16px;
   }
   .banner-whatsapp {
@@ -1618,10 +1623,10 @@ footer {
     gap: 5px;
   }
   .status-placar {
-    font-size: 9px;
-    padding: 1px 7px;
+    font-size: 8px;
+    padding: 1px 5px;
   }
-  .quando { font-size: 10.5px; }
+  .quando { font-size: 11.5px; }
 
   .palpite {
     padding: 8px 12px;
