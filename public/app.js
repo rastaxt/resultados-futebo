@@ -19,7 +19,6 @@ const botaoAoVivo = document.querySelector("#aovivo");
 const ligaDestaque = document.querySelector("#liga-destaque");
 const atualizadoEl = document.querySelector("#atualizado");
 const dataInput = document.querySelector("#data");
-const botaoHojeData = document.querySelector("#data-hoje");
 
 const emblemas = {
   BSA: "/brasiliirao.png",
@@ -457,7 +456,6 @@ async function carregarHoje({ forcar = false, silencioso = false } = {}) {
   const rotulo = dia && dia !== hoje ? `Jogos de ${dataCurta(dia)}` : "Jogos de hoje";
   tituloJogos.textContent = rotulo;
   document.title = `XTscores | ${rotulo}`;
-  botaoHojeData?.classList.toggle("escondido", !dia);
 
   const chave = dia ? `dia-${dia}` : "hoje";
   if (forcar) delete cacheJogos[chave];
@@ -743,10 +741,7 @@ leagueSelect.addEventListener("change", () => {
     leagueSelect.value ? nomesLiga[leagueSelect.value] : "Todas as ligas"
   );
   /* O filtro de data vale para a lista de todas as ligas. */
-  if (leagueSelect.value) {
-    if (dataInput) dataInput.value = "";
-    botaoHojeData?.classList.add("escondido");
-  }
+  if (leagueSelect.value && dataInput) dataInput.value = "";
   roundSelect.innerHTML = "";
   carregarJogos();
   carregarTabela();
@@ -756,7 +751,6 @@ leagueSelect.addEventListener("change", () => {
 
 function aplicarData(valor) {
   if (dataInput) dataInput.value = valor;
-  botaoHojeData?.classList.toggle("escondido", !valor);
   limparCacheDias();
   if (leagueSelect.value) {
     leagueSelect.value = "";
@@ -771,8 +765,6 @@ dataInput?.addEventListener("change", () => {
   rastrear("data", dia || "hoje", dia ? "dia" : "hoje");
   aplicarData(dia);
 });
-
-botaoHojeData?.addEventListener("click", () => aplicarData(""));
 roundSelect.addEventListener("change", () => {
   rastrear("rodada", roundSelect.value, leagueSelect.value || "todas");
   carregarJogos();

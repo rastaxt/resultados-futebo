@@ -321,7 +321,7 @@ header {
 
 .topo {
   display: grid;
-  grid-template-columns: minmax(0, 320px) 1fr minmax(0, 230px);
+  grid-template-columns: minmax(0, 320px) 1fr minmax(0, 320px);
   align-items: center;
   gap: 14px;
   margin: 10px 0 20px;
@@ -563,19 +563,6 @@ select {
   font-variant-numeric: tabular-nums;
   padding: 9px 8px;
   cursor: pointer;
-}
-
-.data-hoje {
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 9px 10px;
-  border-radius: 10px;
-  background: var(--campo-bg);
-}
-.data-hoje:hover {
-  border-color: var(--borda-hover);
-  background: var(--campo-bg-ativo);
 }
 
 .filtros .picker {
