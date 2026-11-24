@@ -281,15 +281,36 @@ main {
 /* ---------- cabeçalho ---------- */
 
 .site-header {
-  padding-top: 0;
+  padding-top: 66px;
 }
 
+/* barra fixa no topo */
 .site-barra {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  height: 66px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--linha);
+  background:
+    linear-gradient(150deg, var(--barra-a), var(--barra-b)),
+    var(--bg);
+  box-shadow: 0 14px 34px -26px rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.site-barra-conteudo {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 14px 0 12px;
-  border-bottom: 1px solid var(--linha);
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
 }
 
 .marca {
@@ -300,8 +321,8 @@ main {
 }
 
 .logo {
-  width: 122px;
-  height: auto;
+  width: auto;
+  height: 50px;
   filter: drop-shadow(0 10px 26px rgba(61, 220, 132, 0.18));
 }
 
@@ -397,7 +418,7 @@ main {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   position: sticky;
-  top: 12px;
+  top: 78px;
   z-index: 30;
 }
 
@@ -717,7 +738,7 @@ select {
 
 h2 {
   margin: 34px 0 16px;
-  scroll-margin-top: 116px;
+  scroll-margin-top: 150px;
   font-family: Outfit, system-ui, sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
@@ -770,7 +791,7 @@ button.liga:hover { opacity: 0.85; }
 
 #jogos,
 #classificacao {
-  scroll-margin-top: 104px;
+  scroll-margin-top: 150px;
 }
 
 .jogo { position: relative; }
@@ -1395,15 +1416,12 @@ footer {
 }
 
 /*
- * O logotipo é branco com fundo transparente. No tema claro ele ganha um
- * selo escuro para manter contraste e identidade visual.
- */
-/*
  * O logo é branco: no tema claro ele é invertido para ficar escuro sobre o
  * fundo claro, no lugar do bloco preto que destoava da página.
  */
 :root[data-theme="light"] .logo {
-  width: 134px;
+  width: auto;
+  height: 50px;
   padding: 0;
   margin-bottom: 0;
   border-radius: 0;
@@ -1453,21 +1471,29 @@ footer {
     padding-right: 14px;
   }
 
+  .site-header { padding-top: 58px; }
+
   .site-barra {
-    gap: 10px;
-    padding: 12px 0 10px;
+    height: 58px;
+    padding: 0 14px;
   }
+  .site-barra-conteudo { gap: 10px; }
   .site-nav { display: none; }
   .site-acoes { margin-left: auto; }
   .cta-grupo { display: none; }
 
   .logo {
-    width: 104px;
+    width: auto;
+    height: 38px;
   }
   :root[data-theme="light"] .logo {
-    width: 112px;
+    width: auto;
+    height: 38px;
     padding: 0;
   }
+
+  #jogos,
+  #classificacao { scroll-margin-top: 70px; }
 
   .banner-desktop { display: none; }
   .banner-mobile {
@@ -1498,6 +1524,7 @@ footer {
        o backdrop-filter já cria contexto de empilhamento, então sem z-index
        a lista de ligas aberta aparecia atrás dos jogos. */
     position: relative;
+    top: auto;
     z-index: 30;
     display: flex;
     flex-direction: column;
