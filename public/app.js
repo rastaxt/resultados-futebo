@@ -18,6 +18,8 @@ const loading = document.querySelector("#loading");
 const botaoAoVivo = document.querySelector("#aovivo");
 const ligaDestaque = document.querySelector("#liga-destaque");
 const atualizadoEl = document.querySelector("#atualizado");
+const dataInput = document.querySelector("#data");
+const botaoHojeData = document.querySelector("#data-hoje");
 
 const emblemas = {
   BSA: "/brasiliirao.png",
@@ -111,6 +113,39 @@ function quando(iso) {
   const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: FUSO });
   return `${data}<br>${hora}`;
 }
+/* Data escolhida no filtro (YYYY-MM-DD) ou "" quando o filtro está desligado. */
+function dataEscolhida() {
+  const valor = dataInput?.value || "";
+  return /^\d{4}-\d{2}-\d{2}$/.test(valor) ? valor : "";
+}
+/*
+ * A API trata dateTo como o começo do último dia (UTC), então pedimos um dia
+ * a mais em cada ponta para não perder jogos do fim do dia escolhido.
+ */
+function deslocarDia(iso, dias) {
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
+function diaAnterior(iso) {
+  return deslocarDia(iso, -1);
+}
+function diaSeguinte(iso) {
+  return deslocarDia(iso, 1);
+}
+function dataCurta(iso) {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: FUSO
+  });
+}
+function limparCacheDias() {
+  for (const chave of Object.keys(cacheJogos)) {
+    if (chave === "hoje" || chave.startsWith("dia-")) delete cacheJogos[chave];
+  }
+}
+
 function espera(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -416,11 +451,17 @@ async function carregarHoje({ forcar = false, silencioso = false } = {}) {
   botaoAoVivo.classList.remove("escondido");
   botaoAoVivo.setAttribute("aria-pressed", "false");
   roundSelect.classList.add("escondido");
-  tituloJogos.textContent = "Jogos de hoje";
-  document.title = "XTscores | Jogos de hoje";
 
-  if (forcar) delete cacheJogos.hoje;
-  const cached = cacheJogos.hoje;
+  const dia = dataEscolhida();
+  const hoje = dataSP(0);
+  const rotulo = dia && dia !== hoje ? `Jogos de ${dataCurta(dia)}` : "Jogos de hoje";
+  tituloJogos.textContent = rotulo;
+  document.title = `XTscores | ${rotulo}`;
+  botaoHojeData?.classList.toggle("escondido", !dia);
+
+  const chave = dia ? `dia-${dia}` : "hoje";
+  if (forcar) delete cacheJogos[chave];
+  const cached = cacheJogos[chave];
   if (cacheValido(cached)) {
     jogosAtuais = cached.dados;
     desenharJogos();
@@ -436,15 +477,29 @@ async function carregarHoje({ forcar = false, silencioso = false } = {}) {
      * anterior no horário de Brasília, então buscamos uma janela maior e
      * agrupamos pelo dia local.
      */
-    const inicio = dataSP(-1);
-    const fim = dataSP(6);
+    const inicio = dia ? diaAnterior(dia) : dataSP(-1);
+    const fim = dia ? diaSeguinte(dia) : dataSP(7);
     const data = await buscar(`/api/jogos?date=${inicio}&dateTo=${fim}`);
 
     const porDia = new Map();
     for (const m of data.matches || []) {
-      const dia = diaSP(m.utcDate);
-      if (!porDia.has(dia)) porDia.set(dia, []);
-      porDia.get(dia).push(m);
+      const d = diaSP(m.utcDate);
+      if (!porDia.has(d)) porDia.set(d, []);
+      porDia.get(d).push(m);
+    }
+
+    /* Data escolhida no filtro: mostra exatamente os jogos daquele dia. */
+    if (dia) {
+      const novos = marcarPernas(porDia.get(dia) || []);
+      cacheJogos[chave] = { dados: novos, salvoEm: Date.now() };
+      jogosAtuais = novos;
+      if (novos.length) {
+        desenharJogos();
+      } else {
+        matchesEl.innerHTML = `<p class="vazio">Nenhum jogo em ${escHtml(dataCurta(dia))}.</p>`;
+      }
+      marcarAtualizado();
+      return;
     }
 
     /*
@@ -462,7 +517,7 @@ async function carregarHoje({ forcar = false, silencioso = false } = {}) {
 
       if (jogosDoDia.length) {
         const novos = marcarPernas(jogosDoDia);
-        cacheJogos.hoje = { dados: novos, salvoEm: Date.now() };
+        cacheJogos[chave] = { dados: novos, salvoEm: Date.now() };
         jogosAtuais = novos;
         tituloJogos.textContent = i === 0 ? "Jogos de hoje" : "Próximos jogos";
         document.title = `XTscores | ${tituloJogos.textContent}`;
@@ -473,7 +528,7 @@ async function carregarHoje({ forcar = false, silencioso = false } = {}) {
     }
 
     jogosAtuais = [];
-    cacheJogos.hoje = { dados: [], salvoEm: Date.now() };
+    cacheJogos[chave] = { dados: [], salvoEm: Date.now() };
     matchesEl.innerHTML = `<p class="vazio">Nenhum jogo encontrado nos próximos dias.</p>`;
   } catch (err) {
     jogosAtuais = [];
@@ -687,10 +742,37 @@ leagueSelect.addEventListener("change", () => {
     leagueSelect.value || "todas",
     leagueSelect.value ? nomesLiga[leagueSelect.value] : "Todas as ligas"
   );
+  /* O filtro de data vale para a lista de todas as ligas. */
+  if (leagueSelect.value) {
+    if (dataInput) dataInput.value = "";
+    botaoHojeData?.classList.add("escondido");
+  }
   roundSelect.innerHTML = "";
   carregarJogos();
   carregarTabela();
 });
+
+/* ---------- filtro por data ---------- */
+
+function aplicarData(valor) {
+  if (dataInput) dataInput.value = valor;
+  botaoHojeData?.classList.toggle("escondido", !valor);
+  limparCacheDias();
+  if (leagueSelect.value) {
+    leagueSelect.value = "";
+    pintarPicker();
+  }
+  carregarJogos();
+  carregarTabela();
+}
+
+dataInput?.addEventListener("change", () => {
+  const dia = dataEscolhida();
+  rastrear("data", dia || "hoje", dia ? "dia" : "hoje");
+  aplicarData(dia);
+});
+
+botaoHojeData?.addEventListener("click", () => aplicarData(""));
 roundSelect.addEventListener("change", () => {
   rastrear("rodada", roundSelect.value, leagueSelect.value || "todas");
   carregarJogos();

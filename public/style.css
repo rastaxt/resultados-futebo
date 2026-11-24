@@ -321,7 +321,7 @@ header {
 
 .topo {
   display: grid;
-  grid-template-columns: minmax(0, 230px) 1fr minmax(0, 230px);
+  grid-template-columns: minmax(0, 320px) 1fr minmax(0, 230px);
   align-items: center;
   gap: 14px;
   margin: 10px 0 20px;
@@ -537,6 +537,51 @@ select {
   background: linear-gradient(180deg, var(--aovivo-ativo-a), var(--aovivo-ativo-b));
   border-color: var(--foco-borda);
   box-shadow: 0 0 0 1px var(--aovivo-borda), var(--brilho-verde);
+}
+
+/* ---------- filtro por data ---------- */
+
+.filtros {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.filtro-data {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.filtro-data #data {
+  width: 136px;
+  min-width: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  padding: 9px 8px;
+  cursor: pointer;
+}
+
+.data-hoje {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: var(--campo-bg);
+}
+.data-hoje:hover {
+  border-color: var(--borda-hover);
+  background: var(--campo-bg-ativo);
+}
+
+.filtros .picker {
+  flex: 1 1 130px;
+  width: auto;
+  min-width: 0;
 }
 
 /* ---------- seletor de ligas ---------- */
@@ -1345,6 +1390,16 @@ footer p { margin: 0 0 12px; }
   .atualizado {
     margin: 28px 0 18px;
   }
+
+  .filtros {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .filtro-data { flex: 1 1 100%; justify-content: center; }
+  .filtro-data #data { flex: 1 1 auto; width: auto; max-width: 200px; }
+
+  .filtros .picker { flex: 1 1 100%; }
 
   .topo {
     /* relativo (e não estático) para a barra de filtros ficar acima dos cards:
