@@ -17,6 +17,7 @@ const tituloTabela = document.querySelector("#titulo-tabela");
 const loading = document.querySelector("#loading");
 const botaoAoVivo = document.querySelector("#aovivo");
 const ligaDestaque = document.querySelector("#liga-destaque");
+const atualizadoEl = document.querySelector("#atualizado");
 
 const emblemas = {
   BSA: "/brasiliirao.png",
@@ -160,6 +161,25 @@ function prioridadeStatus(status) {
   return 5;
 }
 
+/* Selo de frescor: mostra a hora do último carregamento bem-sucedido. */
+let ultimaAtualizacao = null;
+
+function marcarAtualizado() {
+  if (!atualizadoEl) return;
+  ultimaAtualizacao = Date.now();
+  const hora = new Date(ultimaAtualizacao).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: FUSO
+  });
+  const temAoVivo = jogosAtuais.some(aoVivo);
+  atualizadoEl.textContent = temAoVivo
+    ? `Ao vivo · atualizado às ${hora}`
+    : `Atualizado às ${hora}`;
+  atualizadoEl.classList.toggle("aovivo", temAoVivo);
+  atualizadoEl.classList.remove("escondido");
+}
+
 /* ---------- Busca com retry limitado ---------- */
 
 async function buscar(url, tentativas = 3) {
@@ -168,7 +188,7 @@ async function buscar(url, tentativas = 3) {
   for (let i = 0; i < tentativas; i++) {
     let res;
     try {
-      res = await fetch(url, { headers: { Accept: "application/json" } });
+      res = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
     } catch {
       ultimoErro = new Error("Sem conexão. Verifique sua internet.");
       if (i < tentativas - 1) {
@@ -394,6 +414,8 @@ async function carregarHoje({ forcar = false, silencioso = false } = {}) {
   if (cacheValido(cached)) {
     jogosAtuais = cached.dados;
     desenharJogos();
+    marcarAtualizado();
+    agendarAtualizacao();
     return;
   }
 
@@ -415,9 +437,18 @@ async function carregarHoje({ forcar = false, silencioso = false } = {}) {
       porDia.get(dia).push(m);
     }
 
+    /*
+     * Jogos iniciados antes da meia-noite (horário de Brasília) podem seguir
+     * ao vivo no dia seguinte; entram na lista de hoje para não desaparecerem.
+     */
+    const ontemAoVivo = (porDia.get(dataSP(-1)) || []).filter(aoVivo);
+
     for (let i = 0; i < 7; i++) {
-      const dia = dataSP(i);
-      const jogosDoDia = porDia.get(dia) || [];
+      let jogosDoDia = porDia.get(dataSP(i)) || [];
+      if (i === 0 && ontemAoVivo.length) {
+        const ids = new Set(jogosDoDia.map((m) => m.id));
+        jogosDoDia = [...ontemAoVivo.filter((m) => !ids.has(m.id)), ...jogosDoDia];
+      }
 
       if (jogosDoDia.length) {
         const novos = marcarPernas(jogosDoDia);
@@ -426,6 +457,7 @@ async function carregarHoje({ forcar = false, silencioso = false } = {}) {
         tituloJogos.textContent = i === 0 ? "Jogos de hoje" : "Próximos jogos";
         document.title = `XTscores | ${tituloJogos.textContent}`;
         desenharJogos();
+        marcarAtualizado();
         return;
       }
     }
@@ -438,6 +470,7 @@ async function carregarHoje({ forcar = false, silencioso = false } = {}) {
     matchesEl.innerHTML = `<p class="vazio">${escHtml(err.message)}</p>`;
   } finally {
     esconderLoading(exibido);
+    agendarAtualizacao();
   }
 }
 
@@ -464,6 +497,8 @@ async function carregarJogos({ forcar = false, silencioso = false } = {}) {
   if (cacheValido(cached)) {
     jogosAtuais = cached.dados;
     desenharJogos();
+    marcarAtualizado();
+    agendarAtualizacao();
     return;
   }
 
@@ -480,11 +515,13 @@ async function carregarJogos({ forcar = false, silencioso = false } = {}) {
     if (data.rodada) cacheJogos[`${code}-${data.rodada}`] = registro;
     jogosAtuais = novos;
     desenharJogos();
+    marcarAtualizado();
   } catch (err) {
     jogosAtuais = [];
     matchesEl.innerHTML = `<p class="vazio">${escHtml(err.message)}</p>`;
   } finally {
     esconderLoading(exibido);
+    agendarAtualizacao();
   }
 }
 
@@ -558,7 +595,8 @@ async function abrirDetalhe(id) {
 
   try {
     const res = await fetch(`/api/jogo/${encodeURIComponent(id)}`, {
-      headers: { Accept: "application/json" }
+      headers: { Accept: "application/json" },
+      cache: "no-store"
     });
     const m = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(m.error || "Não foi possível carregar o jogo.");

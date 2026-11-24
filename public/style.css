@@ -218,8 +218,34 @@ header {
   filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.18));
 }
 
-/* ---------- controles ---------- */
+/* ---------- selo de atualização ---------- */
 
+.atualizado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: -6px 0 18px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  font-variant-numeric: tabular-nums;
+}
+.atualizado.escondido { display: none; }
+.atualizado.aovivo { color: var(--verde); }
+.atualizado.aovivo::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--verde);
+  box-shadow: 0 0 10px rgba(61, 220, 132, 0.9);
+  animation: pulso 1.6s infinite;
+}
+
+/* ---------- controles ---------- */
 input,
 select,
 button {

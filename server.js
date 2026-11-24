@@ -30,6 +30,8 @@ const RE_DATA = /^\d{4}-\d{2}-\d{2}$/;
 const RE_CODIGO = /^[A-Z0-9]{2,4}$/;
 const RE_ID = /^\d{1,10}$/;
 const CACHE_TTL = 5 * 60 * 1000;
+/* Placar ao vivo precisa de cache curto: 1 minuto. */
+const CACHE_TTL_JOGOS = 60 * 1000;
 
 /* Cache em memória com TTL e deduplicação de requisições em andamento. */
 const cache = new Map();
@@ -54,9 +56,9 @@ function podarCache() {
   }
 }
 
-async function api(pathname) {
+async function api(pathname, ttl = CACHE_TTL) {
   const hit = cache.get(pathname);
-  if (hit && Date.now() - hit.at < CACHE_TTL) return hit.data;
+  if (hit && Date.now() - hit.at < ttl) return hit.data;
 
   if (emAndamento.has(pathname)) return emAndamento.get(pathname);
 
@@ -104,7 +106,8 @@ async function api(pathname) {
 async function jogosDoPeriodo(date, dateTo) {
   try {
     const data = await api(
-      `/matches?competitions=${LIGAS.join(",")}&dateFrom=${date}&dateTo=${dateTo}`
+      `/matches?competitions=${LIGAS.join(",")}&dateFrom=${date}&dateTo=${dateTo}`,
+      CACHE_TTL_JOGOS
     );
     if (Array.isArray(data?.matches)) return data.matches;
   } catch (err) {
@@ -114,7 +117,10 @@ async function jogosDoPeriodo(date, dateTo) {
 
   const grupos = await Promise.allSettled(
     LIGAS.map((code) =>
-      api(`/competitions/${code}/matches?dateFrom=${date}&dateTo=${dateTo}`)
+      api(
+        `/competitions/${code}/matches?dateFrom=${date}&dateTo=${dateTo}`,
+        CACHE_TTL_JOGOS
+      )
     )
   );
 
@@ -136,13 +142,66 @@ async function jogosDoPeriodo(date, dateTo) {
   return matches;
 }
 
-function dataHoje() {
+function dataSP(deslocamentoDias = 0) {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
     year: "numeric",
     month: "2-digit",
     day: "2-digit"
-  }).format(new Date());
+  }).format(new Date(Date.now() + deslocamentoDias * 86400000));
+}
+
+function dataHoje() {
+  return dataSP(0);
+}
+
+function diaSP(iso) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date(iso));
+}
+
+/*
+ * Rodada que o usuário espera ver: a dos jogos ao vivo ou, na falta deles,
+ * a dos jogos de hoje. A API às vezes informa currentMatchday adiantado,
+ * o que esconderia partidas em andamento.
+ */
+function rodadaRelevante(jogos) {
+  const daLiga = jogos.filter((m) => m.matchday);
+  const vivo = daLiga.find((m) => m.status === "IN_PLAY" || m.status === "PAUSED");
+  if (vivo) return vivo.matchday;
+  const hoje = dataHoje();
+  const doDia = daLiga.find(
+    (m) => diaSP(m.utcDate) === hoje && m.status !== "CANCELLED" && m.status !== "POSTPONED"
+  );
+  return doDia?.matchday || null;
+}
+
+function rodadaDoCache(code) {
+  for (const [chave, item] of cache) {
+    if (!chave.startsWith("/matches?competitions=")) continue;
+    if (Date.now() - item.at >= CACHE_TTL_JOGOS) continue;
+    const jogos = item.data?.matches;
+    if (!Array.isArray(jogos)) continue;
+    const alvo = rodadaRelevante(jogos.filter((m) => m.competition?.code === code));
+    if (alvo) return alvo;
+  }
+  return null;
+}
+
+async function rodadaDaJanela(code) {
+  try {
+    const janela = await api(
+      `/competitions/${code}/matches?dateFrom=${dataSP(-1)}&dateTo=${dataSP(1)}`,
+      CACHE_TTL_JOGOS
+    );
+    return rodadaRelevante(janela?.matches || []);
+  } catch {
+    return null;
+  }
 }
 
 function responderErro(res, err) {
@@ -224,7 +283,7 @@ app.get("/api/jogos", async (req, res) => {
     if (dateTo > limite) dateTo = limite;
 
     const matches = await jogosDoPeriodo(date, dateTo);
-    res.setHeader("Cache-Control", "public, max-age=60");
+    res.setHeader("Cache-Control", "no-store");
     res.json({ matches, resultSet: { count: matches.length } });
   } catch (err) {
     responderErro(res, err);
@@ -251,8 +310,8 @@ app.get("/api/jogo/:id", async (req, res) => {
     return res.status(400).json({ error: "Identificador de jogo inválido.", code: 400 });
   }
   try {
-    const data = await api(`/matches/${id}`);
-    res.setHeader("Cache-Control", "public, max-age=30");
+    const data = await api(`/matches/${id}`, CACHE_TTL_JOGOS);
+    res.setHeader("Cache-Control", "no-store");
     res.json(data);
   } catch (err) {
     responderErro(res, err);
@@ -271,11 +330,19 @@ app.get("/api/rodada/:code", async (req, res) => {
     const atual = tabela?.season?.currentMatchday || 1;
 
     const pedida = Number(req.query.rodada);
-    const alvo = Number.isFinite(pedida) && pedida >= 1 ? pedida : atual;
+    let alvo;
+    if (Number.isFinite(pedida) && pedida >= 1) {
+      alvo = pedida;
+    } else {
+      alvo = rodadaDoCache(code) || (await rodadaDaJanela(code)) || atual;
+    }
     const rodada = Math.min(Math.max(Math.floor(alvo), 1), totalRodadas);
 
-    const data = await api(`/competitions/${code}/matches?matchday=${rodada}`);
-    res.setHeader("Cache-Control", "public, max-age=60");
+    const data = await api(
+      `/competitions/${code}/matches?matchday=${rodada}`,
+      CACHE_TTL_JOGOS
+    );
+    res.setHeader("Cache-Control", "no-store");
     res.json({
       ...data,
       rodadaAtual: atual,
